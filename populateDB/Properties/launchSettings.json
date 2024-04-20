@@ -2,7 +2,7 @@
   "profiles": {
     "sql": {
       "commandName": "Project",
-      "workingDirectory": "C:\\Users\\Tudor\\Desktop\\github\\Music-creation\\populateDB"
+      "workingDirectory": "D:\\Faculty Materials\\Second Year\\Second Semester\\SE\\NamespaceGPT-MusicCreation\\NamespaceGPT-MusicCreation\\populateDB"
     }
   }
 }

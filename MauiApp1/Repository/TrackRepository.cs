@@ -1,32 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Data;
 using Microsoft.Data.SqlClient;
 using Music.MusicDomain;
-using System.Text.RegularExpressions;
+using MusicCreator.Repository.Interfaces;
 
 namespace MusicCreator.Repository
 {
     internal class TrackRepository : ITrackRepository
     {
-        private SqlConnection conn;
-        private SqlDataAdapter adapter;
-        private DataSet dataset;
-        private DataTable? table;
-        private string query;
-        private SqlCommandBuilder cmdBuild;
-        private List<Track> tracks;
+        private readonly SqlConnection _connection;
+        private readonly SqlDataAdapter _adapter;
+        private readonly DataSet _dataset;
+        private readonly DataTable? _table;
+        private readonly SqlCommandBuilder _commandBuilder;
 
-        private string getConnectionString()
+        private static string GetConnectionString()
         {
-            return "Data Source=192.168.43.73,1235;Initial Catalog=MusicDB;" +
-                "User Id=user;Password=root;Encrypt=False";
+            return "Data Source=192.168.1.140,2002;Initial Catalog=MusicDB;" +
+                "User Id=user;Password=root;Encrypt=False;Integrated Security=false;TrustServerCertificate=true";
         }
 
-        private Track generateTrackFromRowObject(DataRow row)
+        private static Track GenerateTrackFromRowObject(DataRow row)
         {
             int id = (int)row["track_id"]; // ...
             string title = (string)row["title"];
@@ -38,63 +31,89 @@ namespace MusicCreator.Repository
         public TrackRepository()
         {
             // initializing connection
-            query = "select * from TRACK";
-            conn = new SqlConnection(getConnectionString());
+            string query = "select * from TRACK";
+            _connection = new SqlConnection(GetConnectionString());
 
             // filling dataset
-            adapter = new SqlDataAdapter(query, conn);
-            dataset = new DataSet();
-            adapter.Fill(dataset, "Track");
-            table = dataset.Tables["Track"]; // this should be a shallow copy
+            _adapter = new SqlDataAdapter(query, _connection);
+            _dataset = new DataSet();
+            
+            _adapter.Fill(_dataset, "Track");
+
+            _table = _dataset.Tables["Track"];
 
             // building commands for the adapter
-            cmdBuild = new SqlCommandBuilder(adapter);
-            adapter.InsertCommand = cmdBuild.GetInsertCommand();
-            adapter.DeleteCommand = cmdBuild.GetDeleteCommand();
+            _commandBuilder = new SqlCommandBuilder(_adapter);
+            _adapter.InsertCommand = _commandBuilder.GetInsertCommand();
+            _adapter.DeleteCommand = _commandBuilder.GetDeleteCommand();
         }
 
-        public void add(Track elem)
+        public void Add(Track elem)
         {
-            DataRow row = table.NewRow();
-            row["title"] = elem.getTitle();
-            row["track_type"] = elem.getType();
-            row["audio"] = elem.getSongData();
-            table.Rows.Add(row);
-            adapter.Update(dataset, "Track");
-        }
-
-        public void delete(Track elem)
-        {
-            foreach (DataRow row in table.Rows)
+            if (_table == null)
             {
-                if ((int)row["track_id"] == elem.getId())
+                return;
+            }
+
+            DataRow row = _table.NewRow();
+            row["title"] = elem.Title;
+            row["track_type"] = elem.Type;
+            row["audio"] = elem.SongData;
+            _table.Rows.Add(row);
+            _adapter.Update(_dataset, "Track");
+        }
+
+        public void Delete(Track elem)
+        {
+            if (_table == null)
+            {
+                return;
+            }
+
+            foreach (DataRow row in _table.Rows)
+            {
+                if ((int)row["track_id"] == elem.Id)
                     row.Delete();
             }
-            dataset.AcceptChanges();
-            adapter.Update(dataset, "Track");
+
+            _dataset.AcceptChanges();
+            _adapter.Update(_dataset, "Track");
         }
 
-        public Track? search(int id)
+        public Track? Search(int id)
         {
-            var elems = from DataRow row in table.Rows
+            if (_table == null)
+            {
+                return null;
+            }
+
+            var elems = from DataRow row in _table.Rows
                         where (int)row["track_id"] == id // yeah, trust me bro
                         select row;
 
             if (elems == null)
                 return null;
 
-            DataRow elem = elems.FirstOrDefault();
-            return generateTrackFromRowObject(elem);
+            DataRow? elem = elems.FirstOrDefault();
+            if (elem == null)
+            {
+                return null;
+            }
+
+            return GenerateTrackFromRowObject(elem);
         }
 
-        public List<Track> getAll()
+        public List<Track> GetAll()
         {
-            if (tracks != null)
-                return tracks;
-            var elems = from DataRow row in table.Rows
-                        select generateTrackFromRowObject(row);
-            tracks = elems.ToList();
-            return tracks;
+            if (_table == null)
+            {
+                return [];
+            }
+
+            var elems = from DataRow row in _table.Rows
+                        select GenerateTrackFromRowObject(row);
+
+            return elems.ToList();
         }
     }
 }

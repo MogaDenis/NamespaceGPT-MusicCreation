@@ -1,82 +1,88 @@
 using Music.MusicDomain;
 using MusicCreator.Services;
-using System.Text.Json.Serialization.Metadata;
 
-namespace MusicCreator;
-
-public partial class MainPageApp : ContentPage
+namespace MusicCreator
 {
-    Service service = Service.GetService();
-    List<Track> auxList;
-    bool isButtonClicked;
-
-    public MainPageApp()
-	{
-  
-		InitializeComponent();
-        auxList = service.GetCreationTracks();
-        List<string> items = (from t in auxList
-                             select t.getTitle()).ToList();
-
-        tracksListView.ItemsSource = items;
-        isButtonClicked = false;
-
-    }
-
-    private void OnDeleteClicked(object sender, EventArgs e)
+    public partial class MainPageApp : ContentPage
     {
-        if (sender is Button { CommandParameter: string item } && tracksListView.ItemsSource is List<string> items)
+        private readonly Service _service;
+        private readonly List<Track> _tracks;
+        private bool _isButtonClicked;
+
+        public MainPageApp()
         {
-            items.Remove(item);
-            int trackId = auxList.Find(x => x.getTitle() == item).getId();
-            service.RemoveTrack(trackId);
-            tracksListView.ItemsSource = null;
+
+            InitializeComponent();
+            _service = Service.GetService();
+            _tracks = _service.GetCreationTracks();
+            List<string> items = (from t in _tracks
+                                  select t.Title).ToList();
+
             tracksListView.ItemsSource = items;
+            _isButtonClicked = false;
         }
-    }
 
-    private async void GoFromMainToLogInPage(object sender, EventArgs e)
-    {
-        await Shell.Current.GoToAsync("LogIn");
-    }
-
-    private void GoToListenTrack(object sender, EventArgs e)
-    {
-
-    }
-    private async void GoToSearchTracks(object sender, EventArgs e)
-    {
-        Button button = (Button)sender;
-        string category = button.Text.ToLower();
-        service.category = category;
-        await Shell.Current.GoToAsync("Search");
-    }
-    
-    private async void GoFromMainToSavePage(object sender, EventArgs e)
-    {
-        if(service.GetCreationTracks().Count == 0)
+        private void OnDeleteClicked(object sender, EventArgs e)
         {
-            DisplayAlert("Empty creation!", "Please select at least one track!", "OK");
-            return;
-        }
-        await Shell.Current.GoToAsync("Save");
-    }
+            if (sender is Button { CommandParameter: string item } && tracksListView.ItemsSource is List<string> items)
+            {
+                items.Remove(item);
+                var track = _tracks.Find(x => x.Title == item);
+                if (track == null)
+                {
+                    return;
+                }
 
-    
-    private void PlayCreation(object sender, EventArgs e)
-    {
-        if (!isButtonClicked && service.GetCreationTracks().Count() != 0)
-        {
-            playButton.BackgroundColor = Color.FromRgb(255, 0, 0);
-            isButtonClicked = true;
-            service.PlayCreation();
+                int trackId = track.Id;
+                _service.RemoveTrack(trackId);
+                tracksListView.ItemsSource = null;
+                tracksListView.ItemsSource = items;
+            }
         }
-        else
+
+        private async void GoFromMainToLogInPage(object sender, EventArgs e)
         {
-            playButton.BackgroundColor = Color.FromRgb(57, 208, 71);
-            isButtonClicked = false;
-            service.StopCreation();
+            await Shell.Current.GoToAsync("LogIn");
+        }
+
+        private void GoToListenTrack(object sender, EventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private async void GoToSearchTracks(object sender, EventArgs e)
+        {
+            Button button = (Button)sender;
+            string category = button.Text.ToLower();
+            _service.Category = category;
+            await Shell.Current.GoToAsync("Search");
+        }
+
+        private async void GoFromMainToSavePage(object sender, EventArgs e)
+        {
+            if (_service.GetCreationTracks().Count == 0)
+            {
+                await DisplayAlert("Empty creation!", "Please select at least one track!", "OK");
+                return;
+            }
+            await Shell.Current.GoToAsync("Save");
+        }
+
+
+        private void PlayCreation(object sender, EventArgs e)
+        {
+            if (!_isButtonClicked && _service.GetCreationTracks().Count() != 0)
+            {
+                playButton.BackgroundColor = Color.FromRgb(255, 0, 0);
+                _isButtonClicked = true;
+                _service.PlayCreation();
+            }
+            else
+            {
+                playButton.BackgroundColor = Color.FromRgb(57, 208, 71);
+                _isButtonClicked = false;
+                _service.StopCreation();
+            }
         }
     }
-
 }

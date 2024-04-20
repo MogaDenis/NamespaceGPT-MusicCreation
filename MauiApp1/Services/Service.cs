@@ -1,50 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MusicCreator.Repository;
+﻿using MusicCreator.Repository;
 using Music.MusicDomain;
+using MusicCreator.Repository.Interfaces;
 
 namespace MusicCreator.Services
 {
     internal class Service
     {
-        private TrackRepository _trackRepository;
-        private CreationRepository _creationRepository;
-        private SongRepository _songRepository;
-        public string category { get; set;}
+        private readonly ITrackRepository _trackRepository;
+        private readonly ICreationRepository _creationRepository;
+        private readonly ISongRepository _songRepository;
+        public string Category { get; set; } = null!;
 
         private static Service? _instance = null;
+
         public static Service GetService()
         {
             if (_instance == null)
             {
                 _instance = new Service();
             }
+
             return _instance;
         }
 
         private Service()
         {
-             _trackRepository = new TrackRepository();
-             _creationRepository = new CreationRepository();
+            _trackRepository = new TrackRepository();
+            _creationRepository = new CreationRepository();
              _songRepository = new SongRepository();
         }
 
         public List<Track> GetTracks()
         {
-            return _trackRepository.getAll();
+            return _trackRepository.GetAll();
         }
 
         public List<Track> GetTracksByType(int type) // 1 = Drum, 2 = Instrument, 3 = Fx, 4 = Voice
         {
-            return _trackRepository.getAll().FindAll(x => x.getType() == type);
+            return _trackRepository.GetAll().FindAll(x => x.Type == type);
         }
 
-        public Track GetTrackById(int id)
+        public Track? GetTrackById(int id)
         {
-            return _trackRepository.getAll().Find(x => x.getId() == id);
+            return _trackRepository.GetAll().Find(x => x.Id == id);
         }
 
         public List<Track> GetCreationTracks()
@@ -59,7 +57,13 @@ namespace MusicCreator.Services
 
         public void AddTrack(int id)
         {
-            _creationRepository.AddTrack(_trackRepository.getAll().Find(t => t.getId() == id));
+            var track = _trackRepository.GetAll().Find(t => t.Id == id);
+            if (track == null)
+            {
+                return;
+            }
+
+            _creationRepository.AddTrack(track);
         }
 
         public void RemoveTrack(int id)
@@ -74,22 +78,22 @@ namespace MusicCreator.Services
 
         public void PlayCreation()
         {
-            _creationRepository.playCreation();
+            _creationRepository.PlayCreation();
         }
 
         public void StopCreation()
         {
-            _creationRepository.stopCreation();
+            _creationRepository.StopCreation();
         }
 
         public void SaveCreation(string title)
         {
-            _songRepository.add(_creationRepository.saveCreation(title));
+            _songRepository.Add(_creationRepository.SaveCreation(title));
         }
 
         public void StopAll()
         {
-            foreach (Track track in _trackRepository.getAll())
+            foreach (Track track in _trackRepository.GetAll())
             {
                 track.Stop();
             }

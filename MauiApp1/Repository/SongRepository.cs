@@ -1,31 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Data;
 using Microsoft.Data.SqlClient;
 using Music.MusicDomain;
-using System.Text.RegularExpressions;
+using MusicCreator.Repository.Interfaces;
 
 namespace MusicCreator.Repository
 {
     internal class SongRepository : ISongRepository
     {
-        private SqlConnection conn;
-        private SqlDataAdapter adapter;
-        private DataSet dataset;
-        private DataTable? table;
-        private string query;
-        private SqlCommandBuilder cmdBuild;
+        private SqlConnection _connection;
+        private SqlDataAdapter _adapter;
+        private DataSet _dataset;
+        private DataTable? _table;
+        private SqlCommandBuilder _commandBuilder;
 
-        private string getConnectionString()
+        private static string GetConnectionString()
         {
-            return "Data Source=192.168.43.73,1235;Initial Catalog=MusicDB;" +
-                "User Id=user;Password=root;Encrypt=False";
+            return "Data Source=192.168.1.140,2002;Initial Catalog=MusicDB;" +
+                "User Id=user;Password=root;Encrypt=False;Integrated Security=false;TrustServerCertificate=true";
         }
 
-        private Song generateSongFromRowObject(DataRow row)
+        private Song GenerateSongFromRowObject(DataRow row)
         {
             int id = (int)row["song_id"]; // ...
             string title = (string)row["title"];
@@ -36,60 +30,82 @@ namespace MusicCreator.Repository
 
         public SongRepository()
         {
-            // initializing connection
-            query = "select * from SONG";
-            conn = new SqlConnection(getConnectionString());
+            string query = "select * from SONG";
+            _connection = new SqlConnection(GetConnectionString());
 
-            // filling dataset
-            adapter = new SqlDataAdapter(query, conn);
-            dataset = new DataSet();
-            adapter.Fill(dataset, "Song");
-            table = dataset.Tables["Song"];
+            _adapter = new SqlDataAdapter(query, _connection);
+            _dataset = new DataSet();
+            _adapter.Fill(_dataset, "Song");
+            _table = _dataset.Tables["Song"];
 
-            // building commands for the adapter
-            cmdBuild = new SqlCommandBuilder(adapter);
-            adapter.InsertCommand = cmdBuild.GetInsertCommand();
-            adapter.DeleteCommand = cmdBuild.GetDeleteCommand();
+            _commandBuilder = new SqlCommandBuilder(_adapter);
+            _adapter.InsertCommand = _commandBuilder.GetInsertCommand();
+            _adapter.DeleteCommand = _commandBuilder.GetDeleteCommand();
         }
 
-        public void add(Song elem)
+        public void Add(Song elem)
         {
-            DataRow row = table.NewRow();
-            row["title"] = elem.getTitle();
-            row["artist"] = elem.getArtist();
-            row["audio"] = elem.getSongData();
-            table.Rows.Add(row);
-            adapter.Update(dataset, "Song");
-        }
-
-        public void delete(Song elem)
-        {
-            foreach (DataRow row in table.Rows)
+            if (_table == null)
             {
-                if ((int)row["song_id"] == elem.getId())
+                return;
+            }
+
+            DataRow row = _table.NewRow();
+            row["title"] = elem.Title;
+            row["artist"] = elem.Artist;
+            row["audio"] = elem.SongData;
+            _table.Rows.Add(row);
+            _adapter.Update(_dataset, "Song");
+        }
+
+        public void Delete(Song elem)
+        {
+            if (_table == null)
+            {
+                return;
+            }
+
+            foreach (DataRow row in _table.Rows)
+            {
+                if ((int)row["song_id"] == elem.Id)
                     row.Delete();
             }
-            dataset.AcceptChanges();
-            adapter.Update(dataset, "Song");
+            _dataset.AcceptChanges();
+            _adapter.Update(_dataset, "Song");
         }
 
-        public Song? search(int id)
+        public Song? Search(int id)
         {
-            var elems = from DataRow row in table.Rows
-                        where (int)row["song_id"] == id // yeah, trust me bro
+            if (_table == null)
+            {
+                return null;
+            }
+
+            var elems = from DataRow row in _table.Rows
+                        where (int)row["song_id"] == id
                         select row;
 
             if (elems == null)
                 return null;
 
-            DataRow elem = elems.FirstOrDefault();
-            return generateSongFromRowObject(elem);
+            DataRow? elem = elems.FirstOrDefault();
+            if (elem == null)
+            {
+                return null;
+            }
+
+            return GenerateSongFromRowObject(elem);
         }
 
-        public List<Song> getAll()
+        public List<Song> GetAll()
         {
-            var elems = from DataRow row in table.Rows
-                        select generateSongFromRowObject(row);
+            if (_table == null)
+            {
+                return [];
+            }
+
+            var elems = from DataRow row in _table.Rows
+                        select GenerateSongFromRowObject(row);
             return elems.ToList();
         }
     }

@@ -15,7 +15,7 @@ namespace Music.MusicDomain
         public LoopStream(WaveStream sourceStream)
         {
             this.sourceStream = sourceStream;
-            this.EnableLooping = true;
+            EnableLooping = true;
         }
 
         /// <summary>
@@ -71,52 +71,36 @@ namespace Music.MusicDomain
         }
     }
 
-    internal class Track
+    public class Track
     {
-        public int id { get; }
-        public string title { get; }
+        public int Id { get; }
+        public string Title { get; }
+        public int Type { get; } // 1 - drums, 2 - instrument, 3 - fx, 4 - voice
+        public byte[] SongData { get; }
 
-        private int type; // 1 - drums, 2 - instrument, 3 - fx, 4 - voice
-        //private long timestamp = 0;
-        private byte[] songData;
+        private readonly IAudioManager audioManager;
+        private IAudioPlayer audioPlayer;
+
         //private WaveOutEvent waveOut;
         //private WaveStream waveStream;
-        private IAudioManager audioManager;
-        private IAudioPlayer audioPlayer;
+        //private long timestamp = 0;
 
         public Track(int id, string title, int type, byte[] songData)
         {
-            this.id = id;
-            this.title = title;
-            this.type = type;
-            this.songData = songData;
-            //waveOut = new WaveOutEvent();
+            Id = id;
+            Title = title;
+            Type = type;
+            SongData = songData;
+            
             audioManager = AudioManager.Current;
-        }
+            
 
-        public int getId()
-        {
-            return id;
-        }
-
-        public byte[] getSongData()
-        {
-            return songData;
-        }
-
-        public string getTitle()
-        {
-            return title;
-        }
-
-        public int getType()
-        {
-            return type;
+            //waveOut = new WaveOutEvent();
         }
 
         public void Play()
         {
-            if (songData.Length == 0 || songData == null)
+            if (SongData.Length == 0 || SongData == null)
             {
                 return;
             }
@@ -134,9 +118,11 @@ namespace Music.MusicDomain
                 waveOut.Play();
             }*/
             if (audioPlayer != null)
+            {
                 audioPlayer.Stop();
+            }
 
-            audioPlayer = audioManager.CreatePlayer(new MemoryStream(songData));
+            audioPlayer = audioManager.CreatePlayer(new MemoryStream(SongData));
             audioPlayer.Loop = true;
             audioPlayer.Play();
         }
@@ -149,14 +135,10 @@ namespace Music.MusicDomain
             //{
             //    waveStream.Dispose();
             //}
-            if(audioPlayer != null)
+            if (audioPlayer != null)
+            {
                 audioPlayer.Stop();
-
-        }
-
-        ~Track()
-        {
-            //waveOut.Dispose();
+            }
         }
 
         //public PlaybackState GetPlaybackState()

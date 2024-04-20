@@ -1,31 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Data;
+﻿using System.Data;
 using Microsoft.Data.SqlClient;
 using Music.MusicDomain;
-using System.Text.RegularExpressions;
+using MusicCreator.Repository.Interfaces;
 
 namespace MusicCreator.Repository
 {
     internal class MusigTagRepository : IMusicTagRepository
     {
-        private SqlConnection conn;
-        private SqlDataAdapter adapter;
-        private DataSet dataset;
-        private DataTable? table;
-        private string query;
-        private SqlCommandBuilder cmdBuild;
+        private readonly SqlConnection _connection;
+        private readonly SqlDataAdapter _adapter;
+        private readonly DataSet _dataset;
+        private readonly DataTable? _table;
 
-        private string getConnectionString()
+        private static string GetConnectionString()
         {
-            return "Data Source=192.168.43.73,1235;Initial Catalog=MusicDB;" +
-                "User Id=user;Password=root;Encrypt=False";
+            return "Data Source=192.168.1.140,2002;Initial Catalog=MusicDB;" +
+                "User Id=user;Password=root;Encrypt=False;Integrated Security=false;TrustServerCertificate=true";
         }
 
-        private MusicTag generateMusicTagFromRowObject(DataRow row)
+        private static MusicTag GenerateMusicTagFromRowObject(DataRow row)
         {
             int id = (int)row["musictag_id"]; // I hope you will do a better job
             string title = (string)row["tag"];
@@ -34,47 +27,65 @@ namespace MusicCreator.Repository
 
         public MusigTagRepository() 
         {
-            // initializing connection
-            query = "select * from MUSICTAG";
-            conn = new SqlConnection(getConnectionString());
+            string query = "select * from MUSICTAG";
+            _connection = new SqlConnection(GetConnectionString());
 
-            // filling dataset
-            adapter = new SqlDataAdapter(query, conn);
-            dataset = new DataSet();
-            adapter.Fill(dataset, "MusicTag");
-            table = dataset.Tables["MusicTag"]; // this should be a shallow copy
+            _adapter = new SqlDataAdapter(query, _connection);
+            _dataset = new DataSet();
 
-            // building commands for the adapter
-            cmdBuild = new SqlCommandBuilder(adapter);
-            adapter.InsertCommand = cmdBuild.GetInsertCommand();
+            _adapter.Fill(_dataset, "MusicTag");
+            _table = _dataset.Tables["MusicTag"]; 
+
+            var commandBuilder = new SqlCommandBuilder(_adapter);
+            _adapter.InsertCommand = commandBuilder.GetInsertCommand();
         }
 
-        public void add(MusicTag elem)
+        public void Add(MusicTag elem)
         {
-            DataRow row = table.NewRow();
+            if (_table == null)
+            {
+                return;
+            }
+
+            DataRow row = _table.NewRow();
             //row["musictag_id"] = elem.getId();
-            row["tag"] = elem.getTitle();
-            table.Rows.Add(row);
-            adapter.Update(dataset, "MusicTag");
+            row["tag"] = elem.Title;
+            _table.Rows.Add(row);
+            _adapter.Update(_dataset, "MusicTag");
         }
 
-        public MusicTag? search(int id)
+        public MusicTag? Search(int id)
         {
-            var elems = from DataRow row in table.Rows
-                        where (int)row["musictag_id"] == id // yeah, trust me bro
+            if (_table == null)
+            {
+                return null;
+            }
+
+            var elems = from DataRow row in _table.Rows
+                        where (int)row["musictag_id"] == id
                         select row;
 
             if (elems == null)
                 return null;
 
-            DataRow elem = elems.FirstOrDefault();
-            return generateMusicTagFromRowObject(elem); 
+            DataRow? elem = elems.FirstOrDefault();
+            if (elem == null)
+            {
+                return null;
+            }
+
+            return GenerateMusicTagFromRowObject(elem); 
         }
 
-        public List<MusicTag> getAll()
+        public List<MusicTag> GetAll()
         {
-            var elems = from DataRow row in table.Rows
-                        select generateMusicTagFromRowObject(row);
+            if (_table == null)
+            {
+                return [];
+            }
+
+            var elems = from DataRow row in _table.Rows
+                        select GenerateMusicTagFromRowObject(row);
             return elems.ToList();
         }
     }
