@@ -5,45 +5,48 @@ using MusicCreator.Repository.Interfaces;
 
 namespace MusicCreator.Repository
 {
-    internal class SongRepository : ISongRepository
+    public class TrackRepository : ITrackRepository
     {
-        private SqlConnection _connection;
-        private SqlDataAdapter _adapter;
-        private DataSet _dataset;
-        private DataTable? _table;
-        private SqlCommandBuilder _commandBuilder;
+        private readonly SqlConnection _connection;
+        private readonly SqlDataAdapter _adapter;
+        private readonly DataSet _dataset;
+        private readonly DataTable? _table;
+        private readonly SqlCommandBuilder _commandBuilder;
 
-        private static string GetConnectionString()
-        {
-            return "Data Source=192.168.1.140,2002;Initial Catalog=MusicDB;" +
-                "User Id=user;Password=root;Encrypt=False;Integrated Security=false;TrustServerCertificate=true";
-        }
+        private readonly IConnectionFactory _connectionFactory;
 
-        private Song GenerateSongFromRowObject(DataRow row)
+        private static Track GenerateTrackFromRowObject(DataRow row)
         {
-            int id = (int)row["song_id"]; // ...
+            int id = (int)row["track_id"]; // ...
             string title = (string)row["title"];
-            string artist = (string)row["artist"];
+            int type = (int)row["track_type"];
             byte[] audio = (byte[])row["audio"];
-            return new Song(id, title, 0, audio, artist);
+            return new Track(id, title, type, audio);
         }
 
-        public SongRepository()
+        public TrackRepository(IConnectionFactory connectionFactory)
         {
-            string query = "select * from SONG";
-            _connection = new SqlConnection(GetConnectionString());
+            _connectionFactory = connectionFactory;
 
+            // initializing connection
+            string query = "select * from TRACK";
+            _connection = _connectionFactory.GetConnection();
+
+            // filling dataset
             _adapter = new SqlDataAdapter(query, _connection);
             _dataset = new DataSet();
-            _adapter.Fill(_dataset, "Song");
-            _table = _dataset.Tables["Song"];
+            
+            _adapter.Fill(_dataset, "Track");
 
+            _table = _dataset.Tables["Track"];
+
+            // building commands for the adapter
             _commandBuilder = new SqlCommandBuilder(_adapter);
             _adapter.InsertCommand = _commandBuilder.GetInsertCommand();
             _adapter.DeleteCommand = _commandBuilder.GetDeleteCommand();
         }
 
-        public void Add(Song elem)
+        public void Add(Track elem)
         {
             if (_table == null)
             {
@@ -52,13 +55,13 @@ namespace MusicCreator.Repository
 
             DataRow row = _table.NewRow();
             row["title"] = elem.Title;
-            row["artist"] = elem.Artist;
+            row["track_type"] = elem.Type;
             row["audio"] = elem.SongData;
             _table.Rows.Add(row);
-            _adapter.Update(_dataset, "Song");
+            _adapter.Update(_dataset, "Track");
         }
 
-        public void Delete(Song elem)
+        public void Delete(Track elem)
         {
             if (_table == null)
             {
@@ -67,14 +70,15 @@ namespace MusicCreator.Repository
 
             foreach (DataRow row in _table.Rows)
             {
-                if ((int)row["song_id"] == elem.Id)
+                if ((int)row["track_id"] == elem.Id)
                     row.Delete();
             }
+
             _dataset.AcceptChanges();
-            _adapter.Update(_dataset, "Song");
+            _adapter.Update(_dataset, "Track");
         }
 
-        public Song? Search(int id)
+        public Track? Search(int id)
         {
             if (_table == null)
             {
@@ -82,7 +86,7 @@ namespace MusicCreator.Repository
             }
 
             var elems = from DataRow row in _table.Rows
-                        where (int)row["song_id"] == id
+                        where (int)row["track_id"] == id // yeah, trust me bro
                         select row;
 
             if (elems == null)
@@ -94,10 +98,10 @@ namespace MusicCreator.Repository
                 return null;
             }
 
-            return GenerateSongFromRowObject(elem);
+            return GenerateTrackFromRowObject(elem);
         }
 
-        public List<Song> GetAll()
+        public List<Track> GetAll()
         {
             if (_table == null)
             {
@@ -105,7 +109,8 @@ namespace MusicCreator.Repository
             }
 
             var elems = from DataRow row in _table.Rows
-                        select GenerateSongFromRowObject(row);
+                        select GenerateTrackFromRowObject(row);
+
             return elems.ToList();
         }
     }

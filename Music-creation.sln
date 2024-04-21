@@ -5,6 +5,10 @@ VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MusicCreator", "MauiApp1\MusicCreator.csproj", "{0AD3862F-6865-4050-9200-B02FCB5AFA7D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicCreator-Backend", "MusicCreator-Backend\MusicCreator-Backend.csproj", "{82E51303-47A6-428C-9CA4-8AD362F74867}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicCreator-Tests", "MusicCreator-Tests\MusicCreator-Tests.csproj", "{AEEF0150-AE75-4B31-B3E3-820A7B30CA57}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,6 +21,14 @@ Global
 		{0AD3862F-6865-4050-9200-B02FCB5AFA7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0AD3862F-6865-4050-9200-B02FCB5AFA7D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0AD3862F-6865-4050-9200-B02FCB5AFA7D}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{82E51303-47A6-428C-9CA4-8AD362F74867}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82E51303-47A6-428C-9CA4-8AD362F74867}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82E51303-47A6-428C-9CA4-8AD362F74867}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82E51303-47A6-428C-9CA4-8AD362F74867}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEEF0150-AE75-4B31-B3E3-820A7B30CA57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEEF0150-AE75-4B31-B3E3-820A7B30CA57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEEF0150-AE75-4B31-B3E3-820A7B30CA57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEEF0150-AE75-4B31-B3E3-820A7B30CA57}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

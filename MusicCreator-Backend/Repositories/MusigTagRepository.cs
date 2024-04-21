@@ -5,18 +5,14 @@ using MusicCreator.Repository.Interfaces;
 
 namespace MusicCreator.Repository
 {
-    internal class MusigTagRepository : IMusicTagRepository
+    public class MusigTagRepository : IMusicTagRepository
     {
         private readonly SqlConnection _connection;
         private readonly SqlDataAdapter _adapter;
         private readonly DataSet _dataset;
         private readonly DataTable? _table;
 
-        private static string GetConnectionString()
-        {
-            return "Data Source=192.168.1.140,2002;Initial Catalog=MusicDB;" +
-                "User Id=user;Password=root;Encrypt=False;Integrated Security=false;TrustServerCertificate=true";
-        }
+        private readonly IConnectionFactory _connectionFactory;
 
         private static MusicTag GenerateMusicTagFromRowObject(DataRow row)
         {
@@ -25,16 +21,18 @@ namespace MusicCreator.Repository
             return new MusicTag(id, title);
         }
 
-        public MusigTagRepository() 
+        public MusigTagRepository(IConnectionFactory connectionFactory)
         {
+            _connectionFactory = connectionFactory;
+
             string query = "select * from MUSICTAG";
-            _connection = new SqlConnection(GetConnectionString());
+            _connection = (SqlConnection)_connectionFactory.GetConnection();
 
             _adapter = new SqlDataAdapter(query, _connection);
             _dataset = new DataSet();
 
             _adapter.Fill(_dataset, "MusicTag");
-            _table = _dataset.Tables["MusicTag"]; 
+            _table = _dataset.Tables["MusicTag"];
 
             var commandBuilder = new SqlCommandBuilder(_adapter);
             _adapter.InsertCommand = commandBuilder.GetInsertCommand();
@@ -66,7 +64,9 @@ namespace MusicCreator.Repository
                         select row;
 
             if (elems == null)
+            {
                 return null;
+            }
 
             DataRow? elem = elems.FirstOrDefault();
             if (elem == null)
@@ -74,7 +74,7 @@ namespace MusicCreator.Repository
                 return null;
             }
 
-            return GenerateMusicTagFromRowObject(elem); 
+            return GenerateMusicTagFromRowObject(elem);
         }
 
         public List<MusicTag> GetAll()
@@ -86,6 +86,7 @@ namespace MusicCreator.Repository
 
             var elems = from DataRow row in _table.Rows
                         select GenerateMusicTagFromRowObject(row);
+
             return elems.ToList();
         }
     }

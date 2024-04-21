@@ -2,7 +2,7 @@
 
 namespace MusicCreator.Repository.Interfaces
 {
-    internal interface IMusicTagRepository
+    public interface IMusicTagRepository
     {
         void Add(MusicTag elem);
         MusicTag? Search(int id);

@@ -2,7 +2,6 @@ using MusicCreator.Services;
 
 namespace MusicCreator
 {
-
     public partial class SaveConfirmationPage : ContentPage
     {
         private readonly Service _service;

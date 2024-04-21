@@ -2,7 +2,7 @@
 
 namespace MusicCreator.Repository.Interfaces
 {
-    internal interface ITrackRepository
+    public interface ITrackRepository
     {
         void Add(Track elem);
         void Delete(Track elem);

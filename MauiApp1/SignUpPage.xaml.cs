@@ -49,7 +49,7 @@ namespace MusicCreator
             await Shell.Current.GoToAsync("Main");
         }
 
-        private bool IsPasswordComplex(string password)
+        private static bool IsPasswordComplex(string password)
         {
             // Check if password contains at least one uppercase letter, one lowercase letter, one special character, and is at least 6 characters long
             return !string.IsNullOrWhiteSpace(password) &&

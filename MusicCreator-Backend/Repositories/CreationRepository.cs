@@ -4,7 +4,7 @@ using NAudio.Wave;
 
 namespace MusicCreator.Repository
 {
-    internal class CreationRepository : ICreationRepository
+    public class CreationRepository : ICreationRepository
     {
         private readonly List<Track> tracks = [];
         private Track creation;

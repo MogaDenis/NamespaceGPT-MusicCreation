@@ -4,7 +4,7 @@ using MusicCreator.Repository.Interfaces;
 
 namespace MusicCreator.Services
 {
-    internal class Service
+    public class Service
     {
         private readonly ITrackRepository _trackRepository;
         private readonly ICreationRepository _creationRepository;
@@ -25,9 +25,9 @@ namespace MusicCreator.Services
 
         private Service()
         {
-            _trackRepository = new TrackRepository();
+            _trackRepository = new TrackRepository(new SqlConnectionFactory());
             _creationRepository = new CreationRepository();
-             _songRepository = new SongRepository();
+             _songRepository = new SongRepository(new SqlConnectionFactory());
         }
 
         public List<Track> GetTracks()
