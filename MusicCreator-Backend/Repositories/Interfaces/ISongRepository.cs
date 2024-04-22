@@ -4,8 +4,8 @@ namespace MusicCreator.Repository.Interfaces
 {
     public interface ISongRepository
     {
-        void Add(Song elem);
-        void Delete(Song elem);
+        int Add(Song elem);
+        void Delete(int id);
         Song? Search(int id);
         List<Song> GetAll();
     }

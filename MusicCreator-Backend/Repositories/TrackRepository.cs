@@ -1,117 +1,101 @@
-﻿using System.Data;
-using Microsoft.Data.SqlClient;
-using Music.MusicDomain;
-using MusicCreator.Repository.Interfaces;
-
-namespace MusicCreator.Repository
+﻿namespace MusicCreator.Repository
 {
+    using System.Data;
+    using Microsoft.Data.SqlClient;
+    using Music.MusicDomain;
+    using MusicCreator.Repository.Interfaces;
+
     public class TrackRepository : ITrackRepository
     {
-        private readonly SqlConnection _connection;
-        private readonly SqlDataAdapter _adapter;
-        private readonly DataSet _dataset;
-        private readonly DataTable? _table;
-        private readonly SqlCommandBuilder _commandBuilder;
-
         private readonly IConnectionFactory _connectionFactory;
-
-        private static Track GenerateTrackFromRowObject(DataRow row)
-        {
-            int id = (int)row["track_id"]; // ...
-            string title = (string)row["title"];
-            int type = (int)row["track_type"];
-            byte[] audio = (byte[])row["audio"];
-            return new Track(id, title, type, audio);
-        }
 
         public TrackRepository(IConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
-
-            // initializing connection
-            string query = "select * from TRACK";
-            _connection = _connectionFactory.GetConnection();
-
-            // filling dataset
-            _adapter = new SqlDataAdapter(query, _connection);
-            _dataset = new DataSet();
-            
-            _adapter.Fill(_dataset, "Track");
-
-            _table = _dataset.Tables["Track"];
-
-            // building commands for the adapter
-            _commandBuilder = new SqlCommandBuilder(_adapter);
-            _adapter.InsertCommand = _commandBuilder.GetInsertCommand();
-            _adapter.DeleteCommand = _commandBuilder.GetDeleteCommand();
         }
 
-        public void Add(Track elem)
+        public int Add(Track elem)
         {
-            if (_table == null)
-            {
-                return;
-            }
+            using SqlConnection connection = this._connectionFactory.GetConnection();
+            connection.Open();
 
-            DataRow row = _table.NewRow();
-            row["title"] = elem.Title;
-            row["track_type"] = elem.Type;
-            row["audio"] = elem.SongData;
-            _table.Rows.Add(row);
-            _adapter.Update(_dataset, "Track");
+            SqlCommand command = connection.CreateCommand();
+            command.CommandType = CommandType.Text;
+            command.CommandText = "INSERT INTO TRACK (title, track_type, audio) VALUES (@title, @track_type, @audio); SELECT SCOPE_IDENTITY()";
+
+            command.Parameters.AddWithValue("@title", elem.Title);
+            command.Parameters.AddWithValue("@track_type", elem.Type);
+            command.Parameters.AddWithValue("@audio", elem.SongData);
+
+            int newTrackId = Convert.ToInt32(command.ExecuteScalar());
+            return newTrackId;
         }
 
-        public void Delete(Track elem)
+        public void Delete(int id)
         {
-            if (_table == null)
-            {
-                return;
-            }
+            using SqlConnection connection = this._connectionFactory.GetConnection();
+            connection.Open();
 
-            foreach (DataRow row in _table.Rows)
-            {
-                if ((int)row["track_id"] == elem.Id)
-                    row.Delete();
-            }
+            SqlCommand command = connection.CreateCommand();
+            command.CommandType = CommandType.Text;
+            command.CommandText = "DELETE FROM TRACK WHERE track_id = @id";
 
-            _dataset.AcceptChanges();
-            _adapter.Update(_dataset, "Track");
+            command.Parameters.AddWithValue("@id", id);
+
+            command.ExecuteNonQuery();
         }
 
         public Track? Search(int id)
         {
-            if (_table == null)
+            using SqlConnection connection = this._connectionFactory.GetConnection();
+            connection.Open();
+
+            SqlCommand command = connection.CreateCommand();
+            command.CommandType = CommandType.Text;
+            command.CommandText = "SELECT * FROM TRACK WHERE track_id = @id";
+
+            command.Parameters.AddWithValue("@id", id);
+
+            SqlDataReader reader = command.ExecuteReader();
+
+            if (reader.Read())
             {
-                return null;
+                long byteLength = reader.GetBytes(3, 0, null, 0, 0);
+                byte[] byteArray = new byte[byteLength];
+                reader.GetBytes(3, 0, byteArray, 0, (int)byteLength);
+
+                Track track = new (reader.GetInt32(0), reader.GetString(1), reader.GetInt32(2), byteArray);
+
+                return track;
             }
 
-            var elems = from DataRow row in _table.Rows
-                        where (int)row["track_id"] == id // yeah, trust me bro
-                        select row;
-
-            if (elems == null)
-                return null;
-
-            DataRow? elem = elems.FirstOrDefault();
-            if (elem == null)
-            {
-                return null;
-            }
-
-            return GenerateTrackFromRowObject(elem);
+            return null;
         }
 
         public List<Track> GetAll()
         {
-            if (_table == null)
+            using SqlConnection connection = this._connectionFactory.GetConnection();
+            connection.Open();
+
+            SqlCommand command = connection.CreateCommand();
+            command.CommandType = CommandType.Text;
+            command.CommandText = "SELECT * FROM TRACK";
+
+            SqlDataReader reader = command.ExecuteReader();
+            List<Track> tracks = [];
+
+            while (reader.Read())
             {
-                return [];
+                long byteLength = reader.GetBytes(3, 0, null, 0, 0);
+                byte[] byteArray = new byte[byteLength];
+                reader.GetBytes(3, 0, byteArray, 0, (int)byteLength);
+
+                Track track = new (reader.GetInt32(0), reader.GetString(1), reader.GetInt32(2), byteArray);
+
+                tracks.Add(track);
             }
 
-            var elems = from DataRow row in _table.Rows
-                        select GenerateTrackFromRowObject(row);
-
-            return elems.ToList();
+            return tracks;
         }
     }
 }

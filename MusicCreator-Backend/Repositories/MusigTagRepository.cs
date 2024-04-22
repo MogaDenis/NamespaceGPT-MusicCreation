@@ -1,93 +1,77 @@
-﻿using System.Data;
-using Microsoft.Data.SqlClient;
-using Music.MusicDomain;
-using MusicCreator.Repository.Interfaces;
-
-namespace MusicCreator.Repository
+﻿namespace MusicCreator.Repository
 {
+    using System.Data;
+    using Microsoft.Data.SqlClient;
+    using Music.MusicDomain;
+    using MusicCreator.Repository.Interfaces;
+
     public class MusigTagRepository : IMusicTagRepository
     {
-        private readonly SqlConnection _connection;
-        private readonly SqlDataAdapter _adapter;
-        private readonly DataSet _dataset;
-        private readonly DataTable? _table;
-
         private readonly IConnectionFactory _connectionFactory;
-
-        private static MusicTag GenerateMusicTagFromRowObject(DataRow row)
-        {
-            int id = (int)row["musictag_id"]; // I hope you will do a better job
-            string title = (string)row["tag"];
-            return new MusicTag(id, title);
-        }
 
         public MusigTagRepository(IConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
-
-            string query = "select * from MUSICTAG";
-            _connection = _connectionFactory.GetConnection();
-
-            _adapter = new SqlDataAdapter(query, _connection);
-            _dataset = new DataSet();
-
-            _adapter.Fill(_dataset, "MusicTag");
-            _table = _dataset.Tables["MusicTag"];
-
-            var commandBuilder = new SqlCommandBuilder(_adapter);
-            _adapter.InsertCommand = commandBuilder.GetInsertCommand();
         }
 
-        public void Add(MusicTag elem)
+        public int Add(MusicTag elem)
         {
-            if (_table == null)
-            {
-                return;
-            }
+            using SqlConnection connection = this._connectionFactory.GetConnection();
+            connection.Open();
 
-            DataRow row = _table.NewRow();
-            //row["musictag_id"] = elem.getId();
-            row["tag"] = elem.Title;
-            _table.Rows.Add(row);
-            _adapter.Update(_dataset, "MusicTag");
+            SqlCommand command = connection.CreateCommand();
+            command.CommandType = CommandType.Text;
+            command.CommandText = "INSERT INTO MUSICTAG (tag) VALUES (@tag); SELECT SCOPE_IDENTITY()";
+
+            command.Parameters.AddWithValue("@tag", elem.Title);
+
+            int newMusicTagId = Convert.ToInt32(command.ExecuteScalar());
+            return newMusicTagId;
         }
 
         public MusicTag? Search(int id)
         {
-            if (_table == null)
+            using SqlConnection connection = this._connectionFactory.GetConnection();
+            connection.Open();
+
+            SqlCommand command = connection.CreateCommand();
+            command.CommandType = CommandType.Text;
+            command.CommandText = "SELECT * FROM MUSICTAG WHERE musictag_id = @id";
+
+            command.Parameters.AddWithValue("@id", id);
+
+            SqlDataReader reader = command.ExecuteReader();
+
+            if (reader.Read())
             {
-                return null;
+                MusicTag musicTag = new (reader.GetInt32(0), reader.GetString(1));
+
+                return musicTag;
             }
 
-            var elems = from DataRow row in _table.Rows
-                        where (int)row["musictag_id"] == id
-                        select row;
-
-            if (elems == null)
-            {
-                return null;
-            }
-
-            DataRow? elem = elems.FirstOrDefault();
-            if (elem == null)
-            {
-                return null;
-            }
-
-            return GenerateMusicTagFromRowObject(elem);
+            return null;
         }
 
         public List<MusicTag> GetAll()
         {
-            if (_table == null)
+            using SqlConnection connection = this._connectionFactory.GetConnection();
+            connection.Open();
+
+            SqlCommand command = connection.CreateCommand();
+            command.CommandType = CommandType.Text;
+            command.CommandText = "SELECT * FROM MUSICTAG";
+
+            SqlDataReader reader = command.ExecuteReader();
+            List<MusicTag> musicTags = [];
+
+            while (reader.Read())
             {
-                return [];
+                MusicTag musicTag = new (reader.GetInt32(0), reader.GetString(1));
+
+                musicTags.Add(musicTag);
             }
 
-            var elems = from DataRow row in _table.Rows
-                        select GenerateMusicTagFromRowObject(row);
-
-            return elems.ToList();
+            return musicTags;
         }
     }
 }

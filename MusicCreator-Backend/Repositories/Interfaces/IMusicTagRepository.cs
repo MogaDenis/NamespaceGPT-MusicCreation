@@ -11,7 +11,7 @@
         ///     Method to add a MusicTag.
         /// </summary>
         /// <param name="elem">MusicTag to add.</param>
-        void Add(MusicTag elem);
+        int Add(MusicTag elem);
 
         /// <summary>
         ///     Method to retrieve a MusicTag by id.
