@@ -1,10 +1,10 @@
-﻿using System.Data;
-using Microsoft.Data.SqlClient;
-using Music.MusicDomain;
-using MusicCreator.Repository.Interfaces;
-
-namespace MusicCreator.Repository
+﻿namespace MusicCreator.Repository
 {
+    using System.Data;
+    using Microsoft.Data.SqlClient;
+    using Music.MusicDomain;
+    using MusicCreator.Repository.Interfaces;
+
     public class SongRepository : ISongRepository
     {
         private readonly SqlConnection _connection;
@@ -17,7 +17,7 @@ namespace MusicCreator.Repository
 
         private static Song GenerateSongFromRowObject(DataRow row)
         {
-            //int id = (int)row["song_id"]; // ...
+            // int id = (int)row["song_id"]; // ...
             string title = (string)row["title"];
             string artist = (string)row["artist"];
             byte[] audio = (byte[])row["audio"];

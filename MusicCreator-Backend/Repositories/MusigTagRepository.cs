@@ -26,7 +26,7 @@ namespace MusicCreator.Repository
             _connectionFactory = connectionFactory;
 
             string query = "select * from MUSICTAG";
-            _connection = (SqlConnection)_connectionFactory.GetConnection();
+            _connection = _connectionFactory.GetConnection();
 
             _adapter = new SqlDataAdapter(query, _connection);
             _dataset = new DataSet();

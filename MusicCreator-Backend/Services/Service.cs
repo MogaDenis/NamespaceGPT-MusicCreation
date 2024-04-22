@@ -37,12 +37,23 @@ namespace MusicCreator.Services
 
         public List<Track> GetTracksByType(int type) // 1 = Drum, 2 = Instrument, 3 = Fx, 4 = Voice
         {
-            return _trackRepository.GetAll().FindAll(x => x.Type == type);
+            return _trackRepository.GetAll().FindAll(currentTrack => currentTrack.Type == type);
         }
 
         public Track? GetTrackById(int id)
         {
-            return _trackRepository.GetAll().Find(x => x.Id == id);
+            return _trackRepository.GetAll().Find(currentTrack => currentTrack.Id == id);
+        }
+
+        public Track? GetTrackByTitle(string title)
+        {
+            return _trackRepository.GetAll().Find(currentTrack => currentTrack.Title == title);
+        }
+
+        public List<Track> GetTracksByTypeAndFilterByTitle(int type, string searchQuery)
+        {
+            return GetTracksByType(type)
+                .FindAll(track => track.Title.Contains(searchQuery, StringComparison.CurrentCultureIgnoreCase));
         }
 
         public List<Track> GetCreationTracks()
@@ -54,10 +65,9 @@ namespace MusicCreator.Services
         {
             _creationRepository.AddTrack(track);
         }
-
         public void AddTrack(int id)
         {
-            var track = _trackRepository.GetAll().Find(t => t.Id == id);
+            var track = _trackRepository.GetAll().Find(currentTrack => currentTrack.Id == id);
             if (track == null)
             {
                 return;

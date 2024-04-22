@@ -27,7 +27,7 @@ namespace MusicCreator.Repository
 
         public void RemoveTrack(int id)
         {
-            var track = tracks.Find(x => x.Id == id);
+            var track = tracks.Find(currentTrack => currentTrack.Id == id);
             if (track == null)
             {
                 return;

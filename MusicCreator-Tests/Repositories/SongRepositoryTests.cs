@@ -1,11 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using Music.MusicDomain;
 using MusicCreator.Repository;
 using MusicCreator.Repository.Interfaces;
-using System.Data;
-using System.Data.Common;
 
 namespace MusicCreator.Tests.Repositories
 {
@@ -13,16 +9,20 @@ namespace MusicCreator.Tests.Repositories
     public class SongRepositoryTests
     {
         private SqlConnection _connection = null!;
+        private ISongRepository _songRepository = null!;
 
         [TestInitialize]
         public void Initialize()
         {
-            _connection = new SqlConnection("Data Source=192.168.100.54,2002;Initial Catalog=MusicDB;" +
+            _connection = new SqlConnection("Data Source=172.30.242.145,2002;Initial Catalog=MusicDB;" +
                 "User Id=user;Password=root;Encrypt=False;Integrated Security=false;TrustServerCertificate=true");
             _connection.Open();
 
             var truncateCommand = new SqlCommand("TRUNCATE TABLE SONG", _connection);
             truncateCommand.ExecuteNonQuery();
+
+            SqlConnectionFactory connectionFactory = new();
+            _songRepository = new SongRepository(connectionFactory);
         }
 
         [TestCleanup]
@@ -32,19 +32,16 @@ namespace MusicCreator.Tests.Repositories
         }
 
         [TestMethod]
-        public void TestAdd_SuccessfulAddition()
+        public void TestAdd_SuccessfulAddition_ReturnsVoid()
         {
             // Arrange
-            SqlConnectionFactory connectionFactory = new();
-            var repository = new SongRepository(connectionFactory);
-
             var song = new Song(0, "test", 0, [0x10, 0x20, 0x30], "test");
 
             // Act
-            repository.Add(song);
+            _songRepository.Add(song);
 
             // Assert
-            Assert.AreEqual(1, repository.GetAll().Count);
+            Assert.AreEqual(1, _songRepository.GetAll().Count);
         }
     }
 }

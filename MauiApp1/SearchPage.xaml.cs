@@ -88,8 +88,10 @@ namespace MusicCreator
             }
             else
             {
-                TracksListView.ItemsSource = _service.GetTracksByType(_categoryAsInt).
-                    FindAll(x => x.Title.ToLower().Contains(searchQuery.ToLower()));
+                TracksListView.ItemsSource = _service.GetTracksByTypeAndFilterByTitle(_categoryAsInt, searchQuery);
+
+                //TracksListView.ItemsSource = _service.GetTracksByType(_categoryAsInt).
+                //    FindAll(track => track.Title.ToLower().Contains(searchQuery.ToLower()));
             }
         }
     }

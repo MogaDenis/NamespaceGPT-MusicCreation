@@ -27,7 +27,8 @@ namespace MusicCreator
             if (sender is Button { CommandParameter: string item } && tracksListView.ItemsSource is List<string> items)
             {
                 items.Remove(item);
-                var track = _tracks.Find(x => x.Title == item);
+                //var track = _tracks.Find(x => x.Title == item);
+                var track = _service.GetTrackByTitle(item);
                 if (track == null)
                 {
                     return;

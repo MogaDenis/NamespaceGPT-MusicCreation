@@ -45,7 +45,7 @@ namespace MusicCreator
                 return;
             }
 
-            // If all validations pass, proceed with sign up
+            // If all validations pass, proceed with sign in
             await Shell.Current.GoToAsync("Main");
         }
 
