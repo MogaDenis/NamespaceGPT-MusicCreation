@@ -14,7 +14,7 @@ namespace MusicCreator_Tests.Repositories
         [TestInitialize]
         public void Initialize()
         {
-            _connection = new SqlConnection("Data Source=192.168.100.54,2002;Initial Catalog=MusicDB;" +
+            _connection = new SqlConnection("Data Source=localhost,2004;Initial Catalog=MusicDB;" +
                 "User Id=user;Password=root;Encrypt=False;Integrated Security=false;TrustServerCertificate=true");
             _connection.Open();
 
