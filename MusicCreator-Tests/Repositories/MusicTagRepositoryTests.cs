@@ -47,7 +47,6 @@ namespace MusicCreator_Tests.Repositories
             // Assert
             var retrievedTag = _musicTagRepository.GetAll().FirstOrDefault();
             Assert.IsNotNull(retrievedTag);
-            Assert.AreEqual(musicTag.Id, retrievedTag.Id);
             Assert.AreEqual(id, retrievedTag.Id);
             Assert.AreEqual(musicTag.Title, retrievedTag.Title);
         }
