@@ -1,4 +1,4 @@
-﻿// <copyright file="MusigTagRepository.cs" company="PlaceholderCompany">
+// <copyright file="MusigTagRepository.cs" company="PlaceholderCompany">
 // Copyright (c) PlaceholderCompany. All rights reserved.
 // </copyright>
 
@@ -8,18 +8,13 @@ namespace MusicCreator.Repository
     using Microsoft.Data.SqlClient;
     using Music.MusicDomain;
     using MusicCreator.Repository.Interfaces;
-
+  
     /// <summary>
     /// .
     /// </summary>
     public class MusigTagRepository : IMusicTagRepository
     {
-        private readonly SqlConnection connection;
-        private readonly SqlDataAdapter adapter;
-        private readonly DataSet dataset;
-        private readonly DataTable? table;
-
-        private readonly IConnectionFactory connectionFactory;
+        private readonly IConnectionFactory _connectionFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MusigTagRepository"/> class.
@@ -27,38 +22,26 @@ namespace MusicCreator.Repository
         /// <param name="connectionFactory">The connection factory used to create database connections.</param>
         public MusigTagRepository(IConnectionFactory connectionFactory)
         {
-            this.connectionFactory = connectionFactory;
-
-            string query = "select * from MUSICTAG";
-            this.connection = this.connectionFactory.GetConnection();
-
-            this.adapter = new SqlDataAdapter(query, this.connection);
-            this.dataset = new DataSet();
-
-            this.adapter.Fill(this.dataset, "MusicTag");
-            this.table = this.dataset.Tables["MusicTag"];
-
-            var commandBuilder = new SqlCommandBuilder(this.adapter);
-            this.adapter.InsertCommand = commandBuilder.GetInsertCommand();
+            _connectionFactory = connectionFactory;
         }
 
         /// <summary>
         /// Adds a new music tag to the repository.
         /// </summary>
         /// <param name="elem">The music tag to add.</param>
-        public void Add(MusicTag elem)
+        public int Add(MusicTag elem)
         {
-            if (this.table == null)
-            {
-                return;
-            }
+            using SqlConnection connection = this._connectionFactory.GetConnection();
+            connection.Open();
 
-            DataRow row = this.table.NewRow();
+            SqlCommand command = connection.CreateCommand();
+            command.CommandType = CommandType.Text;
+            command.CommandText = "INSERT INTO MUSICTAG (tag) VALUES (@tag); SELECT SCOPE_IDENTITY()";
 
-            // row["musictag_id"] = elem.getId();
-            row["tag"] = elem.Title;
-            this.table.Rows.Add(row);
-            this.adapter.Update(this.dataset, "MusicTag");
+            command.Parameters.AddWithValue("@tag", elem.Title);
+
+            int newMusicTagId = Convert.ToInt32(command.ExecuteScalar());
+            return newMusicTagId;
         }
 
         /// <summary>
@@ -68,27 +51,25 @@ namespace MusicCreator.Repository
         /// <returns>The music tag with the specified ID, or null if not found.</returns>
         public MusicTag? Search(int id)
         {
-            if (this.table == null)
+            using SqlConnection connection = this._connectionFactory.GetConnection();
+            connection.Open();
+
+            SqlCommand command = connection.CreateCommand();
+            command.CommandType = CommandType.Text;
+            command.CommandText = "SELECT * FROM MUSICTAG WHERE musictag_id = @id";
+
+            command.Parameters.AddWithValue("@id", id);
+
+            SqlDataReader reader = command.ExecuteReader();
+
+            if (reader.Read())
             {
-                return null;
+                MusicTag musicTag = new (reader.GetInt32(0), reader.GetString(1));
+
+                return musicTag;
             }
 
-            var elems = from DataRow row in this.table.Rows
-                        where (int)row["musictag_id"] == id
-                        select row;
-
-            if (elems == null)
-            {
-                return null;
-            }
-
-            DataRow? elem = elems.FirstOrDefault();
-            if (elem == null)
-            {
-                return null;
-            }
-
-            return GenerateMusicTagFromRowObject(elem);
+            return null;
         }
 
         /// <summary>
@@ -97,22 +78,24 @@ namespace MusicCreator.Repository
         /// <returns>A list of all music tags in the repository.</returns>
         public List<MusicTag> GetAll()
         {
-            if (this.table == null)
+            using SqlConnection connection = this._connectionFactory.GetConnection();
+            connection.Open();
+
+            SqlCommand command = connection.CreateCommand();
+            command.CommandType = CommandType.Text;
+            command.CommandText = "SELECT * FROM MUSICTAG";
+
+            SqlDataReader reader = command.ExecuteReader();
+            List<MusicTag> musicTags = [];
+
+            while (reader.Read())
             {
-                return new List<MusicTag>();
+                MusicTag musicTag = new (reader.GetInt32(0), reader.GetString(1));
+
+                musicTags.Add(musicTag);
             }
 
-            var elems = from DataRow row in this.table.Rows
-                        select GenerateMusicTagFromRowObject(row);
-
-            return elems.ToList();
-        }
-
-        private static MusicTag GenerateMusicTagFromRowObject(DataRow row)
-        {
-            int id = (int)row["musictag_id"]; // I hope you will do a better job
-            string title = (string)row["tag"];
-            return new MusicTag(id, title);
+            return musicTags;
         }
     }
 }

@@ -7,104 +7,95 @@
 
     public class SongRepository : ISongRepository
     {
-        private readonly SqlConnection _connection;
-        private readonly SqlDataAdapter _adapter;
-        private readonly DataSet _dataset;
-        private readonly DataTable? _table;
-        private readonly SqlCommandBuilder _commandBuilder;
-
         private readonly IConnectionFactory _connectionFactory;
-
-        private static Song GenerateSongFromRowObject(DataRow row)
-        {
-            // int id = (int)row["song_id"]; // ...
-            string title = (string)row["title"];
-            string artist = (string)row["artist"];
-            byte[] audio = (byte[])row["audio"];
-            return new Song(0, title, 0, audio, artist);
-        }
 
         public SongRepository(IConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
-
-            string query = "select * from SONG";
-            _connection = _connectionFactory.GetConnection();
-
-            _adapter = new SqlDataAdapter(query, _connection);
-            _dataset = new DataSet();
-            _adapter.Fill(_dataset, "Song");
-            _table = _dataset.Tables["Song"];
-
-            _commandBuilder = new SqlCommandBuilder(_adapter);
-            _adapter.InsertCommand = _commandBuilder.GetInsertCommand();
-            _adapter.DeleteCommand = _commandBuilder.GetDeleteCommand();
         }
 
-        public void Add(Song elem)
+        public int Add(Song elem)
         {
-            if (_table == null)
-            {
-                return;
-            }
+            using SqlConnection connection = this._connectionFactory.GetConnection();
+            connection.Open();
 
-            DataRow row = _table.NewRow();
-            row["title"] = elem.Title;
-            row["artist"] = elem.Artist;
-            row["audio"] = elem.SongData;
-            _table.Rows.Add(row);
-            _adapter.Update(_dataset, "Song");
+            SqlCommand command = connection.CreateCommand();
+            command.CommandType = CommandType.Text;
+            command.CommandText = "INSERT INTO SONG (title, artist, audio) VALUES (@title, @artist, @audio); SELECT SCOPE_IDENTITY()";
+
+            command.Parameters.AddWithValue("@title", elem.Title);
+            command.Parameters.AddWithValue("@artist", elem.Artist);
+            command.Parameters.AddWithValue("@audio", elem.SongData);
+
+            int newSongId = Convert.ToInt32(command.ExecuteScalar());
+            return newSongId;
         }
 
-        public void Delete(Song elem)
+        public void Delete(int id)
         {
-            if (_table == null)
-            {
-                return;
-            }
+            using SqlConnection connection = this._connectionFactory.GetConnection();
+            connection.Open();
 
-            foreach (DataRow row in _table.Rows)
-            {
-                if ((int)row["song_id"] == elem.Id)
-                    row.Delete();
-            }
-            _dataset.AcceptChanges();
-            _adapter.Update(_dataset, "Song");
+            SqlCommand command = connection.CreateCommand();
+            command.CommandType = CommandType.Text;
+            command.CommandText = "DELETE FROM SONG WHERE song_id = @id";
+
+            command.Parameters.AddWithValue("@id", id);
+
+            command.ExecuteNonQuery();
         }
 
         public Song? Search(int id)
         {
-            if (_table == null)
+            using SqlConnection connection = this._connectionFactory.GetConnection();
+            connection.Open();
+
+            SqlCommand command = connection.CreateCommand();
+            command.CommandType = CommandType.Text;
+            command.CommandText = "SELECT * FROM SONG WHERE song_id = @id";
+
+            command.Parameters.AddWithValue("@id", id);
+
+            SqlDataReader reader = command.ExecuteReader();
+
+            if (reader.Read())
             {
-                return null;
+                long byteLength = reader.GetBytes(3, 0, null, 0, 0);
+                byte[] byteArray = new byte[byteLength];
+                reader.GetBytes(3, 0, byteArray, 0, (int)byteLength);
+
+                Song song = new(reader.GetInt32(0), reader.GetString(1), 0, byteArray, reader.GetString(2));
+
+                return song;
             }
 
-            var elems = from DataRow row in _table.Rows
-                        where (int)row["song_id"] == id
-                        select row;
-
-            if (elems == null)
-                return null;
-
-            DataRow? elem = elems.FirstOrDefault();
-            if (elem == null)
-            {
-                return null;
-            }
-
-            return GenerateSongFromRowObject(elem);
+            return null;
         }
 
         public List<Song> GetAll()
         {
-            if (_table == null)
+            using SqlConnection connection = this._connectionFactory.GetConnection();
+            connection.Open();
+
+            SqlCommand command = connection.CreateCommand();
+            command.CommandType = CommandType.Text;
+            command.CommandText = "SELECT * FROM SONG";
+
+            SqlDataReader reader = command.ExecuteReader();
+            List<Song> songs = [];
+
+            while (reader.Read())
             {
-                return [];
+                long byteLength = reader.GetBytes(3, 0, null, 0, 0);
+                byte[] byteArray = new byte[byteLength];
+                reader.GetBytes(3, 0, byteArray, 0, (int)byteLength);
+
+                Song song = new (reader.GetInt32(0), reader.GetString(1), 0, byteArray, reader.GetString(2));
+
+                songs.Add(song);
             }
 
-            var elems = from DataRow row in _table.Rows
-                        select GenerateSongFromRowObject(row);
-            return elems.ToList();
+            return songs;
         }
     }
 }

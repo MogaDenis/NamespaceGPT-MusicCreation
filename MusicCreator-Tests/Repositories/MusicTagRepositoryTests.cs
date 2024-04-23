@@ -1,8 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Music.MusicDomain;
 using MusicCreator.Repository;
@@ -19,8 +14,9 @@ namespace MusicCreator_Tests.Repositories
         [TestInitialize]
         public void Initialize()
         {
-            _connection = new SqlConnection("Data Source=172.30.242.145,2002;Initial Catalog=MusicDB;" +
+            _connection = new SqlConnection("Data Source=localhost,2002;Initial Catalog=MusicDB;" +
                 "User Id=user;Password=root;Encrypt=False;Integrated Security=false;TrustServerCertificate=true");
+          
             _connection.Open();
 
             var truncateCommand = new SqlCommand("TRUNCATE TABLE MUSICTAG", _connection);
@@ -33,6 +29,9 @@ namespace MusicCreator_Tests.Repositories
         [TestCleanup]
         public void Cleanup()
         {
+            var truncateCommand = new SqlCommand("TRUNCATE TABLE MUSICTAG", _connection);
+            truncateCommand.ExecuteNonQuery();
+
             _connection.Close();
         }
 
@@ -43,12 +42,13 @@ namespace MusicCreator_Tests.Repositories
             var musicTag = new MusicTag(0, "TestTag");
 
             // Act
-            _musicTagRepository.Add(musicTag);
+            int id = _musicTagRepository.Add(musicTag);
 
             // Assert
             var retrievedTag = _musicTagRepository.GetAll().FirstOrDefault();
             Assert.IsNotNull(retrievedTag);
             Assert.AreEqual(musicTag.Id, retrievedTag.Id);
+            Assert.AreEqual(id, retrievedTag.Id);
             Assert.AreEqual(musicTag.Title, retrievedTag.Title);
         }
 
@@ -57,14 +57,13 @@ namespace MusicCreator_Tests.Repositories
         {
             // Arrange
             var musicTag = new MusicTag(0, "TestTag");
-            _musicTagRepository.Add(musicTag);
+            int id = _musicTagRepository.Add(musicTag);
 
             // Act
-            var retrievedTag = _musicTagRepository.Search(musicTag.Id);
+            var retrievedTag = _musicTagRepository.Search(id);
 
             // Assert
             Assert.IsNotNull(retrievedTag);
-            Assert.AreEqual(musicTag.Id, retrievedTag.Id);
             Assert.AreEqual(musicTag.Title, retrievedTag.Title);
         }
 
@@ -84,14 +83,16 @@ namespace MusicCreator_Tests.Repositories
             // Arrange
             var musicTags = new List<MusicTag>
             {
-                new MusicTag(0, "Tag1"),
-                new MusicTag(0, "Tag2"),
-                new MusicTag(0, "Tag3")
+                new (0, "Tag1"),
+                new (0, "Tag2"),
+                new (0, "Tag3")
             };
+
+            List<int> ids = [];
 
             foreach (var tag in musicTags)
             {
-                _musicTagRepository.Add(tag);
+                ids.Add(_musicTagRepository.Add(tag));
             }
 
             // Act
@@ -101,7 +102,7 @@ namespace MusicCreator_Tests.Repositories
             Assert.AreEqual(musicTags.Count, retrievedTags.Count);
             for (int i = 0; i < musicTags.Count; i++)
             {
-                Assert.AreEqual(musicTags[i].Id, retrievedTags[i].Id);
+                Assert.AreEqual(ids[i], retrievedTags[i].Id);
                 Assert.AreEqual(musicTags[i].Title, retrievedTags[i].Title);
             }
         }
