@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using Music.MusicDomain;
 using MusicCreator.Repository;
 using MusicCreator.Repository.Interfaces;
@@ -14,8 +14,9 @@ namespace MusicCreator_Tests.Repositories
         [TestInitialize]
         public void Initialize()
         {
-            _connection = new SqlConnection("Data Source=localhost,2004;Initial Catalog=MusicDB;" +
+            _connection = new SqlConnection("Data Source=localhost,2002;Initial Catalog=MusicDB;" +
                 "User Id=user;Password=root;Encrypt=False;Integrated Security=false;TrustServerCertificate=true");
+          
             _connection.Open();
 
             var truncateCommand = new SqlCommand("TRUNCATE TABLE MUSICTAG", _connection);
@@ -38,7 +39,7 @@ namespace MusicCreator_Tests.Repositories
         public void TestAdd_SuccessfulAddition_ReturnsVoid()
         {
             // Arrange
-            var musicTag = new MusicTag(0, "TEST");
+            var musicTag = new MusicTag(0, "TestTag");
 
             // Act
             int id = _musicTagRepository.Add(musicTag);
