@@ -10,7 +10,7 @@ namespace MusicCreator.Repository
     using MusicCreator.Repository.Interfaces;
 
     /// <summary>
-    ///     Class responsible from getting and writing MusicTag entities to the database.
+    ///     Class responsible for getting and writing MusicTag entities to the database.
     /// </summary>
     public class MusigTagRepository : IMusicTagRepository
     {

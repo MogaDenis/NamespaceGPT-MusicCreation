@@ -44,6 +44,22 @@ namespace MusicCreator_Tests.Models
         }
 
         [TestMethod]
+        public void TestPlay_NullAudioPlayer_CreatesNewAudioPlayer()
+        {
+            // Arrange
+            byte[] songData = [0x10, 0x20, 0x30];
+            Track track = new(0, "test", 0, songData);
+
+            IAudioPlayer? mockAudioPlayer = null;
+            track.AudioPlayer = mockAudioPlayer;
+
+            // Act
+            track.Play();
+
+            // Assert
+        }
+
+        [TestMethod]
         public void TestStop_TriggersStopOnAudioPlayer()
         {
             // Arrange

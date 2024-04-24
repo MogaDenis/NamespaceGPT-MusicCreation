@@ -10,7 +10,7 @@ namespace MusicCreator.Repository
     using MusicCreator.Repository.Interfaces;
 
     /// <summary>
-    ///     Class responsible from getting and writing Song entities to the database.
+    ///     Class responsible for getting and writing Song entities to the database.
     /// </summary>
     public class SongRepository : ISongRepository
     {

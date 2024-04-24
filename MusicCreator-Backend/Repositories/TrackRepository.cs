@@ -10,7 +10,7 @@ namespace MusicCreator.Repository
     using MusicCreator.Repository.Interfaces;
 
     /// <summary>
-    /// A repository for the track object.
+    ///     Class responsible for getting and writing Track entities to the database.
     /// </summary>
     public class TrackRepository : ITrackRepository
     {

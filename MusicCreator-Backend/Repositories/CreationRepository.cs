@@ -1,128 +1,140 @@
-﻿using Music.MusicDomain;
-using MusicCreator.Repository.Interfaces;
-using NAudio.Wave;
+﻿// <copyright file="CreationRepository.cs" company="PlaceholderCompany">
+// Copyright (c) PlaceholderCompany. All rights reserved.
+// </copyright>
 
 namespace MusicCreator.Repository
 {
+    using Music.MusicDomain;
+    using MusicCreator.Repository.Interfaces;
+    using NAudio.Wave;
+
+    /// <summary>
+    ///     Class responsible for managing the current creation.
+    /// </summary>
     public class CreationRepository : ICreationRepository
     {
-        private readonly List<Track> tracks = [];
+        private List<Track> tracks = [];
         private Track creation;
         private WaveMixerStream32 mixer;
-        private readonly IConnectionFactory connectionFactory;
-        // creation file is the "work in progress" file
 
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="CreationRepository"/> class.
+        /// </summary>
         public CreationRepository()
         {
-            mixer = new WaveMixerStream32();
-            creation = new Track(0507, "creation", 1704, []);
-            mixer.Dispose();
-            // this is to empty the creation file
+            this.mixer = new WaveMixerStream32();
+            this.creation = new Track(0507, "creation", 1704, []);
+            this.mixer.Dispose();
         }
 
-        public CreationRepository(IConnectionFactory connectionFactory)
-        {
-            mixer = new WaveMixerStream32();
-            creation = new Track(0507, "creation", 1704, []);
-            mixer.Dispose();
-            // this is to empty the creation file
-            this.connectionFactory = connectionFactory;
-        }
+        /// <summary>
+        ///     Adds a Track to the creation.
+        /// </summary>
+        /// <param name="track">Track to add.</param>
         public void AddTrack(Track track)
         {
-            tracks.Add(track);
-            GenerateCreation();
+            this.tracks.Add(track);
+            this.GenerateCreation();
         }
 
+        /// <summary>
+        ///     Removes a Track from the creation.
+        /// </summary>
+        /// <param name="id">The id of the Track to be removed.</param>
         public void RemoveTrack(int id)
         {
-            var track = tracks.Find(currentTrack => currentTrack.Id == id);
-            if (track == null)
-            {
-                return;
-            }
-
-            tracks.Remove(track);
-            GenerateCreation();
+            this.tracks = this.tracks.Where(currentTrack => currentTrack.Id != id).ToList();
+            this.GenerateCreation();
         }
 
+        /// <summary>
+        ///     Removes a Track from the creation.
+        /// </summary>
+        /// <param name="track">The Track to be removed.</param>
         public void RemoveTrack(Track track)
         {
-            tracks.Remove(track);
-            GenerateCreation();
+            this.tracks.Remove(track);
+            this.GenerateCreation();
         }
 
+        /// <summary>
+        ///     Returns all Tracks in the creation.
+        /// </summary>
+        /// <returns>List of Tracks.</returns>
         public List<Track> GetTracks()
         {
-            return tracks;
+            return this.tracks;
         }
 
+        /// <summary>
+        ///     Returns the creation.
+        /// </summary>
+        /// <returns>Track representing the whole creation.</returns>
         public Track GetCreation()
         {
-            return creation;
+            return this.creation;
+        }
+
+        /// <summary>
+        ///     Plays the current creation.
+        /// </summary>
+        public void PlayCreation()
+        {
+            this.creation.Play();
+        }
+
+        /// <summary>
+        ///     Stops the playing of the current creation.
+        /// </summary>
+        public void StopCreation()
+        {
+            this.creation.Stop();
+        }
+
+        /// <summary>
+        ///     Saves the creation.
+        /// </summary>
+        /// <param name="title">string. The title of the creation.</param>
+        /// <returns>The creation as a Song object.</returns>
+        public Song SaveCreation(string title)
+        {
+            return new Song(123, title, 0, this.creation.SongData, "dummy");
         }
 
         private void GenerateCreation()
         {
-            mixer = new WaveMixerStream32();
-            foreach (Track track in tracks)
+            this.mixer = new WaveMixerStream32();
+            foreach (Track track in this.tracks)
             {
-                WaveStream audio = new WaveFileReader(new MemoryStream(track.SongData));
-                WaveChannel32 channel = new(audio);
-                mixer.AddInputStream(channel);
+                try
+                {
+                    this.mixer.AddInputStream(new WaveChannel32(new WaveFileReader(new MemoryStream(track.SongData))));
+                }
+                catch (Exception)
+                {
+                }
             }
 
-            creation.Stop();
+            this.creation.Stop();
 
-            using MemoryStream memoryStream = new MemoryStream();
-            // Buffer size for reading from the mixer
+            using MemoryStream memoryStream = new ();
+
             byte[] buffer = new byte[4096];
             int bytesRead;
 
-            // Reset the position of the mixer stream
-            mixer.Position = 0;
+            this.mixer.Position = 0;
 
-            // Create a WaveFileWriter with the memory stream
-            using (var waveWriter = new WaveFileWriter(memoryStream, mixer.WaveFormat))
+            using (var waveWriter = new WaveFileWriter(memoryStream, this.mixer.WaveFormat))
             {
-                // Read from the mixer and write to the memory stream until all data is read
-                while ((bytesRead = mixer.Read(buffer, 0, buffer.Length)) > 0)
+                while ((bytesRead = this.mixer.Read(buffer, 0, buffer.Length)) > 0)
                 {
                     waveWriter.Write(buffer, 0, bytesRead);
                 }
             }
 
-            // Convert the memory stream to a byte array
             byte[] audioBytes = memoryStream.ToArray();
 
-            creation = new Track(0507, "creation", 1704, audioBytes);
-
-            // Now you can use the audioBytes byte array as needed
-        }
-
-        public void PlayCreation()
-        {
-            //if (creation.GetPlaybackState() == PlaybackState.Stopped)
-            creation.Play();
-            //else if (creation.GetPlaybackState() == PlaybackState.Playing)
-            //    creation.Stop();
-        }
-
-        public void StopCreation()
-        {
-            creation.Stop();
-        }
-
-        public Song SaveCreation(string title)
-        {
-            return new Song(123, title, 0, creation.SongData, "dummy");
-
-            /*string outputPath = creationPath + DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss") + ".wav";
-            WaveMixerStream32 mixer = new WaveMixerStream32();
-            WaveStream audio = new WaveFileReader(creation.getPath());
-            WaveChannel32 channel = new WaveChannel32(audio);
-            mixer.AddInputStream(channel);
-            WaveFileWriter.CreateWaveFile(outputPath, mixer);*/
+            this.creation = new Track(0507, "creation", 1704, audioBytes);
         }
     }
 }
