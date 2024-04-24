@@ -1,6 +1,5 @@
 ﻿using Moq;
 using Music.MusicDomain;
-using MusicCreator.Repository;
 using MusicCreator.Repository.Interfaces;
 using MusicCreator.Services;
 
@@ -418,10 +417,6 @@ namespace MusicCreator_Tests.Services
         [TestMethod]
         public void TestGetService_NotInstantiated_ThrowsNullReferenceException()
         {
-            // Arrange
-
-            // Act
-
             // Assert
             Assert.ThrowsException<NullReferenceException>(() => { Service.GetService(); });
         }

@@ -22,7 +22,7 @@ namespace MusicCreator_Tests.Repositories
             var truncateCommand = new SqlCommand("TRUNCATE TABLE MUSICTAG", _connection);
             truncateCommand.ExecuteNonQuery();
 
-            SqlConnectionFactory connectionFactory = new();
+            SqlConnectionFactory connectionFactory = new ();
             _musicTagRepository = new MusigTagRepository(connectionFactory);
         }
 

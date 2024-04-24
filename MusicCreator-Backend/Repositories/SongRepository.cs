@@ -1,4 +1,8 @@
-﻿namespace MusicCreator.Repository
+﻿// <copyright file="SongRepository.cs" company="PlaceholderCompany">
+// Copyright (c) PlaceholderCompany. All rights reserved.
+// </copyright>
+
+namespace MusicCreator.Repository
 {
     using System.Data;
     using Microsoft.Data.SqlClient;

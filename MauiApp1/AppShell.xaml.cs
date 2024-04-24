@@ -1,14 +1,23 @@
-﻿using MusicCreator;
-using MusicCreator.Repository;
-using MusicCreator.Services;
+﻿// <copyright file="AppShell.xaml.cs" company="PlaceholderCompany">
+// Copyright (c) PlaceholderCompany. All rights reserved.
+// </copyright>
 
 namespace MusicCreator
 {
+    using MusicCreator.Repository;
+    using MusicCreator.Services;
+
+    /// <summary>
+    ///     AppShell class which initializes all routes and the service.
+    /// </summary>
     public partial class AppShell : Shell
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AppShell"/> class.
+        /// </summary>
         public AppShell()
         {
-            InitializeComponent();
+            this.InitializeComponent();
 
             Routing.RegisterRoute("Search", typeof(SearchPage));
             Routing.RegisterRoute("Main", typeof(MainPageApp));

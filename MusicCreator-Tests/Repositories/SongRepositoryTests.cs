@@ -1,9 +1,7 @@
 using Microsoft.Data.SqlClient;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Music.MusicDomain;
 using MusicCreator.Repository;
 using MusicCreator.Repository.Interfaces;
-using System.Collections.Generic;
 
 namespace MusicCreator.Tests.Repositories
 {
@@ -22,7 +20,7 @@ namespace MusicCreator.Tests.Repositories
             var truncateCommand = new SqlCommand("TRUNCATE TABLE SONG", _connection);
             truncateCommand.ExecuteNonQuery();
 
-            SqlConnectionFactory connectionFactory = new SqlConnectionFactory();
+            SqlConnectionFactory connectionFactory = new ();
             _songRepository = new SongRepository(connectionFactory);
         }
 
@@ -36,7 +34,7 @@ namespace MusicCreator.Tests.Repositories
         public void TestAdd_SuccessfulAddition_ReturnsNewId()
         {
             // Arrange
-            var song = new Song(0, "Test Song", 0, new byte[] { 0x10, 0x20, 0x30 }, "Pop");
+            var song = new Song(0, "Test Song", 0, [ 0x10, 0x20, 0x30 ], "Pop");
 
             // Act
             int newSongId = _songRepository.Add(song);
@@ -49,8 +47,8 @@ namespace MusicCreator.Tests.Repositories
         public void TestGetAll_ReturnsAllSongs()
         {
             // Arrange
-            var song1 = new Song(0, "Test Song 1", 0, new byte[] { 0x10, 0x20, 0x30 }, "Pop");
-            var song2 = new Song(0, "Test Song 2", 0, new byte[] { 0x40, 0x50, 0x60 }, "Rock");
+            var song1 = new Song(0, "Test Song 1", 0, [ 0x10, 0x20, 0x30 ], "Pop");
+            var song2 = new Song(0, "Test Song 2", 0, [ 0x40, 0x50, 0x60 ], "Rock");
             _songRepository.Add(song1);
             _songRepository.Add(song2);
 
@@ -62,10 +60,10 @@ namespace MusicCreator.Tests.Repositories
         }
 
         [TestMethod]
-        public void TestSearch_Found_ReturnsCorrectSong()
+        public void TestSearch_ExistentId_ReturnsCorrectSong()
         {
             // Arrange
-            var song = new Song(0, "Test Song", 0, new byte[] { 0x10, 0x20, 0x30 }, "Pop");
+            var song = new Song(0, "Test Song", 0, [ 0x10, 0x20, 0x30 ], "Pop");
             int newSongId = _songRepository.Add(song);
 
             // Act
@@ -77,7 +75,7 @@ namespace MusicCreator.Tests.Repositories
         }
 
         [TestMethod]
-        public void TestSearch_NotFound_ReturnsNull()
+        public void TestSearch_InexistentId_ReturnsNull()
         {
             // Act
             Song? foundSong = _songRepository.Search(-1);
@@ -90,7 +88,7 @@ namespace MusicCreator.Tests.Repositories
         public void TestDelete_RemovesSongCorrectly()
         {
             // Arrange
-            var song = new Song(0, "Test Song", 0, new byte[] { 0x10, 0x20, 0x30 }, "Pop");
+            var song = new Song(0, "Test Song", 0, [ 0x10, 0x20, 0x30 ], "Pop");
             int newSongId = _songRepository.Add(song);
 
             // Act

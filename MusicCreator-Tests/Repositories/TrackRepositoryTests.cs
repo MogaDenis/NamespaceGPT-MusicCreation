@@ -1,11 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using MusicCreator.Repository.Interfaces;
 using MusicCreator.Repository;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Music.MusicDomain;
 
 namespace MusicCreator_Tests.Repositories
@@ -26,7 +21,7 @@ namespace MusicCreator_Tests.Repositories
             var truncateCommand = new SqlCommand("TRUNCATE TABLE TRACK", _connection);
             truncateCommand.ExecuteNonQuery();
 
-            SqlConnectionFactory connectionFactory = new();
+            SqlConnectionFactory connectionFactory = new ();
             _trackrepository = new TrackRepository(connectionFactory);
         }
 
@@ -40,21 +35,31 @@ namespace MusicCreator_Tests.Repositories
         }
 
         [TestMethod]
-        public void TestAdd_ValidTrack_Successfulladd()
+        public void TestAdd_ValidTrack_SuccessfullAdd()
         {
-            var track = new Track(0,"Test Track", 1, new byte[] { 0x01, 0x02, 0x03 });
+            // Arrange
+            var track = new Track(0,"Test Track", 1, [ 0x01, 0x02, 0x03 ]);
+
+            // Act
             int newTrackId = _trackrepository.Add(track);
+
+            // Assert
             var addedTrack = _trackrepository.GetById(newTrackId);
             Assert.IsNotNull(addedTrack);
             Assert.AreEqual(newTrackId, addedTrack.Id);
         }
 
         [TestMethod]
-        public void TestDelete_ValidId_Successfulldelete()
+        public void TestDelete_ValidId_SuccessfullDelete()
         {
-            var track = new Track(0, "Test Track", 1, new byte[] { 0x01, 0x02, 0x03 });
+            // Arrange
+            var track = new Track(0, "Test Track", 1, [0x01, 0x02, 0x03]);
             int trackId = _trackrepository.Add(track);
+
+            // Act
             _trackrepository.Delete(trackId);
+
+            // Assert
             var deletedTrack = _trackrepository.GetById(trackId);
             Assert.IsNull(deletedTrack);
         }
@@ -62,31 +67,48 @@ namespace MusicCreator_Tests.Repositories
         [TestMethod]
         public void TestGetById_ValidId_returnsTrack()
         {
-            var track = new Track(0, "Test Track", 1, new byte[] { 0x01, 0x02, 0x03 });
+            // Arrange
+            var track = new Track(0, "Test Track", 1, [0x01, 0x02, 0x03]);
             int trackId = _trackrepository.Add(track);
+
+            // Act
             var getByIdTrack = _trackrepository.GetById(trackId);
-            Assert.AreEqual(getByIdTrack.Title, "Track 1");
+
+            // Assert
+            Assert.IsNotNull(getByIdTrack);
+            Assert.AreEqual(track.Title, getByIdTrack.Title);
         }
 
         [TestMethod]
-        public void TestGetById_ValidId_returnsNull()
+        public void TestGetById_InexistentId_returnsNull()
         {
-            var track = new Track(0, "Test Track", 1, new byte[] { 0x01, 0x02, 0x03 });
-            int trackId = _trackrepository.Add(track);
-            var getByIdTrack = _trackrepository.GetById(25);
+            // Arrange
+            var track = new Track(0, "Test Track", 1, [0x01, 0x02, 0x03]);
+            _ = _trackrepository.Add(track);
+
+            // Act
+            var getByIdTrack = _trackrepository.GetById(-1);
+
+            // Assert
             Assert.IsNull(getByIdTrack);
         }
 
         [TestMethod]
         public void TestGetAll_RetrievesCorrect_ReturnsList()
         {
-            var track1 = new Track(0, "Track 1", 1, new byte[] { 0x01, 0x02, 0x03 });
-            var track2 = new Track(0, "Track 2", 2, new byte[] { 0x04, 0x05, 0x06 });
+            // Arrange
+            var track1 = new Track(0, "Test Track1", 1, [0x01, 0x02, 0x03]);
+            var track2 = new Track(0, "Test Track2", 2, [0x04, 0x05, 0x06]);
             _trackrepository.Add(track1);
             _trackrepository.Add(track2);
+
+            // Act
             var tracks = _trackrepository.GetAll();
+
+            // Assert
             Assert.AreEqual(2, tracks.Count);
-            Assert.AreEqual(tracks[0].Title, "Track 1");
+            Assert.AreEqual(tracks[0].Title, "Test Track1");
+            Assert.AreEqual(tracks[1].Title, "Test Track2");
         }
     }
 }

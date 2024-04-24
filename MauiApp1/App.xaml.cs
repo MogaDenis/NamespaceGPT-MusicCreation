@@ -1,12 +1,22 @@
-﻿namespace MusicCreator
+﻿// <copyright file="App.xaml.cs" company="PlaceholderCompany">
+// Copyright (c) PlaceholderCompany. All rights reserved.
+// </copyright>
+
+namespace MusicCreator
 {
+    /// <summary>
+    ///     Entry point of the MauiApp.
+    /// </summary>
     public partial class App : Application
     {
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="App"/> class.
+        /// </summary>
         public App()
         {
-            InitializeComponent();
+            this.InitializeComponent();
 
-            MainPage = new AppShell();
+            this.MainPage = new AppShell();
         }
     }
 }

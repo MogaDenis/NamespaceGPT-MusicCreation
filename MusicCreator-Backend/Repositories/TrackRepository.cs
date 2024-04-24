@@ -111,7 +111,7 @@ namespace MusicCreator.Repository
             command.CommandText = "SELECT * FROM TRACK";
 
             SqlDataReader reader = command.ExecuteReader();
-            List<Track> tracks =[];
+            List<Track> tracks = [];
 
             while (reader.Read())
             {

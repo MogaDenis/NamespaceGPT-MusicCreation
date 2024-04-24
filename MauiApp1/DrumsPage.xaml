@@ -19,7 +19,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Button Text="Beat 1" BackgroundColor="#FF595E" Clicked="Drum1Clicked" Grid.Row="0" Grid.Column="0" />
+            <Button Text="Beat 1" BackgroundColor="#FF595E" Clicked="DrumClicked" Grid.Row="0" Grid.Column="0" />
             <Button Text="Beat 2" BackgroundColor="#FFCA3A"  Grid.Row="0" Grid.Column="1" />
             <Button Text="Beat 3" BackgroundColor="#8AC926"  Grid.Row="0" Grid.Column="2" />
             <Button Text="Beat 4" BackgroundColor="#1982C4"  Grid.Row="1" Grid.Column="0" />

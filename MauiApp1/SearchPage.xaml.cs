@@ -1,49 +1,61 @@
-using Music.MusicDomain;
-using MusicCreator.Services;
+// <copyright file="SearchPage.xaml.cs" company="PlaceholderCompany">
+// Copyright (c) PlaceholderCompany. All rights reserved.
+// </copyright>
 
 namespace MusicCreator
 {
+    using Music.MusicDomain;
+    using MusicCreator.Services;
+
+    /// <summary>
+    ///     SearchPage ContentPage.
+    /// </summary>
     public partial class SearchPage : ContentPage
     {
-        private readonly Service _service;
-        private readonly int _categoryAsInt;
+        private readonly Service service;
+        private readonly int categoryAsInt;
 
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="SearchPage"/> class.
+        /// </summary>
         public SearchPage()
         {
-            InitializeComponent();
+            this.InitializeComponent();
 
-            _service = Service.GetService();
+            this.service = Service.GetService();
 
-            string category = _service.Category;
+            string category = this.service.Category;
 
             if (category == "drums")
             {
-                _categoryAsInt = 1;
+                this.categoryAsInt = 1;
             }
             else if (category == "music")
             {
-                _categoryAsInt = 2;
+                this.categoryAsInt = 2;
             }
             else if (category == "fx")
             {
-                _categoryAsInt = 3;
+                this.categoryAsInt = 3;
             }
             else if (category == "mic")
             {
-                _categoryAsInt = 4;
+                this.categoryAsInt = 4;
             }
             else
             {
-                _categoryAsInt = 0;
+                this.categoryAsInt = 0;
             }
 
-            var tracksData = _service.GetTracksByType(_categoryAsInt);
-            TracksListView.ItemsSource = tracksData;
-
-
-            //SearchBar.SearchButtonPressed += OnSearchButtonPressed;
+            var tracksData = this.service.GetTracksByType(this.categoryAsInt);
+            this.TracksListView.ItemsSource = tracksData;
         }
 
+        /// <summary>
+        ///     EventHandler for OnTrackTapped Event.
+        /// </summary>
+        /// <param name="sender">object.</param>
+        /// <param name="e">EventArguments.</param>
         public void OnTrackTapped(object sender, ItemTappedEventArgs e)
         {
             if (e.Item is not Track track)
@@ -51,18 +63,22 @@ namespace MusicCreator
                 return;
             }
 
-            _service.AddTrack(track);
-            _service.StopAll();
+            this.service.AddTrack(track);
+            this.service.StopAll();
 
             Shell.Current.GoToAsync("Main");
         }
 
+        /// <summary>
+        ///     EventHandler for OnPlay Event.
+        /// </summary>
+        /// <param name="sender">object.</param>
+        /// <param name="e">EventArguments.</param>
         public void OnPlayClicked(object sender, EventArgs e)
         {
-            //PLAY THE TRACK
-            _service.StopAll();
+            this.service.StopAll();
             int id = (int)((Button)sender).CommandParameter;
-            var track = _service.GetTrackById(id);
+            var track = this.service.GetTrackById(id);
             if (track == null)
             {
                 return;
@@ -71,27 +87,28 @@ namespace MusicCreator
             track.Play();
         }
 
+        /// <summary>
+        ///     EventHandler for GoFromSearchToMainPage Event.
+        /// </summary>
+        /// <param name="sender">object.</param>
+        /// <param name="e">EventArguments.</param>
         public async void GoFromSearchToMainPage(object sender, EventArgs e)
         {
-            _service.StopAll();
+            this.service.StopAll();
             await Shell.Current.GoToAsync("Main");
         }
 
-        // Event handler for the search bar's search button pressed event
         private void OnSearchButtonPressed(object sender, EventArgs e)
         {
-            string searchQuery = SearchBar.Text;
+            string searchQuery = this.SearchBar.Text;
             if (string.IsNullOrWhiteSpace(searchQuery))
             {
-
-                TracksListView.ItemsSource = _service.GetTracksByType(_categoryAsInt);
+                this.TracksListView.ItemsSource = this.service.GetTracksByType(this.categoryAsInt);
             }
             else
             {
-                TracksListView.ItemsSource = _service.GetTracksByTypeAndFilterByTitle(_categoryAsInt, searchQuery);
-
-                //TracksListView.ItemsSource = _service.GetTracksByType(_categoryAsInt).
-                //    FindAll(track => track.Title.ToLower().Contains(searchQuery.ToLower()));
+                this.TracksListView.ItemsSource = this.service
+                    .GetTracksByTypeAndFilterByTitle(this.categoryAsInt, searchQuery);
             }
         }
     }
