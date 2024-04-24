@@ -1,7 +1,9 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Music.MusicDomain;
 using MusicCreator.Repository;
 using MusicCreator.Repository.Interfaces;
+using System.Collections.Generic;
 
 namespace MusicCreator.Tests.Repositories
 {
@@ -14,14 +16,13 @@ namespace MusicCreator.Tests.Repositories
         [TestInitialize]
         public void Initialize()
         {
-            _connection = new SqlConnection("Data Source=localhost,2002;Initial Catalog=MusicDB;" +
-                "User Id=user;Password=root;Encrypt=False;Integrated Security=false;TrustServerCertificate=true");
+            _connection = new SqlConnection("Data Source=localhost,2002;Initial Catalog=MusicDB;User Id=user;Password=root;Encrypt=False;Integrated Security=false;TrustServerCertificate=true");
             _connection.Open();
 
             var truncateCommand = new SqlCommand("TRUNCATE TABLE SONG", _connection);
             truncateCommand.ExecuteNonQuery();
 
-            SqlConnectionFactory connectionFactory = new();
+            SqlConnectionFactory connectionFactory = new SqlConnectionFactory();
             _songRepository = new SongRepository(connectionFactory);
         }
 
@@ -32,16 +33,72 @@ namespace MusicCreator.Tests.Repositories
         }
 
         [TestMethod]
-        public void TestAdd_SuccessfulAddition_ReturnsVoid()
+        public void TestAdd_SuccessfulAddition_ReturnsNewId()
         {
             // Arrange
-            var song = new Song(0, "test", 0, [0x10, 0x20, 0x30], "test");
+            var song = new Song(0, "Test Song", 0, new byte[] { 0x10, 0x20, 0x30 }, "Pop");
 
             // Act
-            _songRepository.Add(song);
+            int newSongId = _songRepository.Add(song);
 
             // Assert
-            Assert.AreEqual(1, _songRepository.GetAll().Count);
+            Assert.IsTrue(newSongId > 0, "New song ID should be greater than 0.");
+        }
+
+        [TestMethod]
+        public void TestGetAll_ReturnsAllSongs()
+        {
+            // Arrange
+            var song1 = new Song(0, "Test Song 1", 0, new byte[] { 0x10, 0x20, 0x30 }, "Pop");
+            var song2 = new Song(0, "Test Song 2", 0, new byte[] { 0x40, 0x50, 0x60 }, "Rock");
+            _songRepository.Add(song1);
+            _songRepository.Add(song2);
+
+            // Act
+            List<Song> songs = _songRepository.GetAll();
+
+            // Assert
+            Assert.AreEqual(2, songs.Count, "Expected two songs to be returned.");
+        }
+
+        [TestMethod]
+        public void TestSearch_Found_ReturnsCorrectSong()
+        {
+            // Arrange
+            var song = new Song(0, "Test Song", 0, new byte[] { 0x10, 0x20, 0x30 }, "Pop");
+            int newSongId = _songRepository.Add(song);
+
+            // Act
+            Song? foundSong = _songRepository.Search(newSongId);
+
+            // Assert
+            Assert.IsNotNull(foundSong);
+            Assert.AreEqual("Test Song", foundSong.Title);
+        }
+
+        [TestMethod]
+        public void TestSearch_NotFound_ReturnsNull()
+        {
+            // Act
+            Song? foundSong = _songRepository.Search(-1);
+
+            // Assert
+            Assert.IsNull(foundSong, "Should return null for a non-existent song ID.");
+        }
+
+        [TestMethod]
+        public void TestDelete_RemovesSongCorrectly()
+        {
+            // Arrange
+            var song = new Song(0, "Test Song", 0, new byte[] { 0x10, 0x20, 0x30 }, "Pop");
+            int newSongId = _songRepository.Add(song);
+
+            // Act
+            _songRepository.Delete(newSongId);
+            Song? foundSong = _songRepository.Search(newSongId);
+
+            // Assert
+            Assert.IsNull(foundSong, "Song should be null after deletion.");
         }
     }
 }
