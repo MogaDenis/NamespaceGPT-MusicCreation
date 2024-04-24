@@ -177,13 +177,13 @@ internal class TrackRepository
 
     private string getConnectionString()
     {
-        return "Data Source=" + ip + ",1235;" +
+        return "Data Source=" + ip + ",2004;" +
             "Integrated Security=true;Encrypt=False";
     }
 
     private string getConnectionString2()
     {
-        return "Data Source=" + ip + ",1235;Initial Catalog=MusicDB;" +
+        return "Data Source=" + ip + ",2004;Initial Catalog=MusicDB;" +
             "Integrated Security=true;Encrypt=False";
     }
 
