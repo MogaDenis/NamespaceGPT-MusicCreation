@@ -38,7 +38,6 @@ namespace MusicCreator.Repository
             SqlCommand command = connection.CreateCommand();
             command.CommandType = CommandType.Text;
             command.CommandText = "INSERT INTO MUSICTAG (tag) VALUES (@tag); SELECT SCOPE_IDENTITY()";
-
             command.Parameters.AddWithValue("@tag", elem.Title);
 
             int newMusicTagId = Convert.ToInt32(command.ExecuteScalar());

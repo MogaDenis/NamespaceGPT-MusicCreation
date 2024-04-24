@@ -1,4 +1,4 @@
-IF NOT EXISTS(SELECT * FROM sys.databases WHERE name = 'MusicDB')
+	IF NOT EXISTS(SELECT * FROM sys.databases WHERE name = 'MusicDB')
 BEGIN
     CREATE DATABASE [MusicDB]
 END
