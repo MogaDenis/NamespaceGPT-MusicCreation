@@ -1,33 +1,42 @@
-using MusicCreator.Services;
+// <copyright file="SaveConfirmationPage.xaml.cs" company="PlaceholderCompany">
+// Copyright (c) PlaceholderCompany. All rights reserved.
+// </copyright>
 
 namespace MusicCreator
 {
+    using MusicCreator.Services;
+
+    /// <summary>
+    ///     SaveConfirmationPage ContentPage.
+    /// </summary>
     public partial class SaveConfirmationPage : ContentPage
     {
-        private readonly Service _service;
+        private readonly Service service;
+
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="SaveConfirmationPage"/> class.
+        /// </summary>
         public SaveConfirmationPage()
         {
-            InitializeComponent();
-            _service = Service.GetService();
+            this.InitializeComponent();
+            this.service = Service.GetService();
         }
 
         private void OnYesClicked(object sender, EventArgs e)
         {
-            //see if there is title in the entry
-            if (string.IsNullOrEmpty(SaveTitleEntry.Text))
+            if (string.IsNullOrEmpty(this.SaveTitleEntry.Text))
             {
-                DisplayAlert("Empty title!", "Please enter a title!", "OK");
+                this.DisplayAlert("Empty title!", "Please enter a title!", "OK");
                 return;
             }
-            DisplayAlert("Your masterpiece has been saved!", "We are waiting for your creative mastermind to blossom once again", "OK");
-            _service.SaveCreation(SaveTitleEntry.Text);
+
+            this.DisplayAlert("Your masterpiece has been saved!", "We are waiting for your creative mastermind to blossom once again", "OK");
+            this.service.SaveCreation(this.SaveTitleEntry.Text);
             Shell.Current.GoToAsync("Main");
         }
 
         private void OnNoClicked(object sender, EventArgs e)
         {
-            // Handle cancel action
-            // Navigate back to the main page OR exit without saving 
             Shell.Current.GoToAsync("Main");
         }
     }

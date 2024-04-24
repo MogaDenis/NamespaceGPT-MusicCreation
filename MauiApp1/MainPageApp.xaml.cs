@@ -1,43 +1,51 @@
-using Music.MusicDomain;
-using MusicCreator.Services;
+// <copyright file="MainPageApp.xaml.cs" company="PlaceholderCompany">
+// Copyright (c) PlaceholderCompany. All rights reserved.
+// </copyright>
 
 namespace MusicCreator
 {
+    using Music.MusicDomain;
+    using MusicCreator.Services;
+
+    /// <summary>
+    ///     MainPageApp ContentPage.
+    /// </summary>
     public partial class MainPageApp : ContentPage
     {
-        private readonly Service _service;
-        private readonly List<Track> _tracks;
-        private bool _isButtonClicked;
+        private readonly Service service;
+        private readonly List<Track> tracks;
+        private bool isButtonClicked;
 
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="MainPageApp"/> class.
+        /// </summary>
         public MainPageApp()
         {
-
-            InitializeComponent();
-            _service = Service.GetService();
-            _tracks = _service.GetCreationTracks();
-            List<string> items = (from t in _tracks
+            this.InitializeComponent();
+            this.service = Service.GetService();
+            this.tracks = this.service.GetCreationTracks();
+            List<string> items = (from t in this.tracks
                                   select t.Title).ToList();
 
-            tracksListView.ItemsSource = items;
-            _isButtonClicked = false;
+            this.tracksListView.ItemsSource = items;
+            this.isButtonClicked = false;
         }
 
         private void OnDeleteClicked(object sender, EventArgs e)
         {
-            if (sender is Button { CommandParameter: string item } && tracksListView.ItemsSource is List<string> items)
+            if (sender is Button { CommandParameter: string item } && this.tracksListView.ItemsSource is List<string> items)
             {
                 items.Remove(item);
-                //var track = _tracks.Find(x => x.Title == item);
-                var track = _service.GetTrackByTitle(item);
+                var track = this.service.GetTrackByTitle(item);
                 if (track == null)
                 {
                     return;
                 }
 
                 int trackId = track.Id;
-                _service.RemoveTrack(trackId);
-                tracksListView.ItemsSource = null;
-                tracksListView.ItemsSource = items;
+                this.service.RemoveTrack(trackId);
+                this.tracksListView.ItemsSource = null;
+                this.tracksListView.ItemsSource = items;
             }
         }
 
@@ -55,34 +63,34 @@ namespace MusicCreator
         {
             Button button = (Button)sender;
             string category = button.Text.ToLower();
-            _service.Category = category;
+            this.service.Category = category;
             await Shell.Current.GoToAsync("Search");
         }
 
         private async void GoFromMainToSavePage(object sender, EventArgs e)
         {
-            if (_service.GetCreationTracks().Count == 0)
+            if (this.service.GetCreationTracks().Count == 0)
             {
-                await DisplayAlert("Empty creation!", "Please select at least one track!", "OK");
+                await this.DisplayAlert("Empty creation!", "Please select at least one track!", "OK");
                 return;
             }
+
             await Shell.Current.GoToAsync("Save");
         }
 
-
         private void PlayCreation(object sender, EventArgs e)
         {
-            if (!_isButtonClicked && _service.GetCreationTracks().Count() != 0)
+            if (!this.isButtonClicked && this.service.GetCreationTracks().Count != 0)
             {
-                playButton.BackgroundColor = Color.FromRgb(255, 0, 0);
-                _isButtonClicked = true;
-                _service.PlayCreation();
+                this.playButton.BackgroundColor = Color.FromRgb(255, 0, 0);
+                this.isButtonClicked = true;
+                this.service.PlayCreation();
             }
             else
             {
-                playButton.BackgroundColor = Color.FromRgb(57, 208, 71);
-                _isButtonClicked = false;
-                _service.StopCreation();
+                this.playButton.BackgroundColor = Color.FromRgb(57, 208, 71);
+                this.isButtonClicked = false;
+                this.service.StopCreation();
             }
         }
     }

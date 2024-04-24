@@ -1,4 +1,8 @@
-﻿namespace MusicCreator.Repository.Interfaces
+﻿// <copyright file="IMusicTagRepository.cs" company="PlaceholderCompany">
+// Copyright (c) PlaceholderCompany. All rights reserved.
+// </copyright>
+
+namespace MusicCreator.Repository.Interfaces
 {
     using Music.MusicDomain;
 
@@ -11,6 +15,7 @@
         ///     Method to add a MusicTag.
         /// </summary>
         /// <param name="elem">MusicTag to add.</param>
+        /// <returns>The id of the new MusicTag.</returns>
         int Add(MusicTag elem);
 
         /// <summary>
@@ -25,6 +30,5 @@
         /// </summary>
         /// <returns>List of MusicTags.</returns>
         List<MusicTag> GetAll();
-
     }
 }
