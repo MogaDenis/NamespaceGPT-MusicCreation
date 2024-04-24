@@ -8,6 +8,7 @@ namespace MusicCreator.Repository.Interfaces
         void RemoveTrack(int id);
         void RemoveTrack(Track track);
         List<Track> GetTracks();
+        Track GetCreation();
         void PlayCreation();
         void StopCreation();
         Song SaveCreation(string title);

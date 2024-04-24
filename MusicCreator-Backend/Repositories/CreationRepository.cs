@@ -9,6 +9,7 @@ namespace MusicCreator.Repository
         private readonly List<Track> tracks = [];
         private Track creation;
         private WaveMixerStream32 mixer;
+        private readonly IConnectionFactory connectionFactory;
         // creation file is the "work in progress" file
 
         public CreationRepository()
@@ -19,6 +20,14 @@ namespace MusicCreator.Repository
             // this is to empty the creation file
         }
 
+        public CreationRepository(IConnectionFactory connectionFactory)
+        {
+            mixer = new WaveMixerStream32();
+            creation = new Track(0507, "creation", 1704, []);
+            mixer.Dispose();
+            // this is to empty the creation file
+            this.connectionFactory = connectionFactory;
+        }
         public void AddTrack(Track track)
         {
             tracks.Add(track);
@@ -46,6 +55,11 @@ namespace MusicCreator.Repository
         public List<Track> GetTracks()
         {
             return tracks;
+        }
+
+        public Track GetCreation()
+        {
+            return creation;
         }
 
         private void GenerateCreation()
